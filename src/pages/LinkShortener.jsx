@@ -145,10 +145,17 @@ const LinkShortener = () => {
         slug = await generateRandomSlug();
       }
 
-      const expirationDate = currentUser ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const isPermanent = currentUser || isAdmin;
+      const expirationDate = isPermanent ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       let creatorName = 'Khách';
-      if (currentUser) {
+      let createdBy = 'guest';
+
+      if (isAdmin && !currentUser) {
+          creatorName = 'BCT_ADMIN';
+          createdBy = 'admin';
+      } else if (currentUser) {
+          createdBy = currentUser.uid;
           if (currentUser.displayName) {
               creatorName = currentUser.displayName;
           } else {
@@ -166,7 +173,7 @@ const LinkShortener = () => {
       const linkData = {
         longUrl,
         slug,
-        createdBy: currentUser?.uid || 'guest',
+        createdBy: createdBy,
         creatorName: creatorName,
         createdAt: new Date(),
         expiresAt: expirationDate,
@@ -421,9 +428,9 @@ const LinkShortener = () => {
                              <span className="meta-label">Trạng thái:</span>
                              <span className={`meta-value ${link.expiresAt ? 'status-expiry' : 'status-perm'}`}>
                                 {link.expiresAt ? (
-                                  <>Có hạn (đến {new Date(link.expiresAt.seconds * 1000).toLocaleDateString('vi-VN')})</>
+                                  <>Hết hạn {new Date(link.expiresAt.seconds * 1000).toLocaleDateString('vi-VN')}</>
                                 ) : (
-                                  <><Unlock size={12} /> Vĩnh viễn</>
+                                  <><Unlock size={12} style={{verticalAlign: 'middle', marginRight: '2px'}}/> Vĩnh viễn</>
                                 )}
                              </span>
                            </div>
