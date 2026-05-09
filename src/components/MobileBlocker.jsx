@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Smartphone, Hammer, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const MobileBlocker = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [isMobile, setIsMobile] = useState(false);
+
+  // Paths that are allowed on mobile
+  const allowedPaths = ['/quiz/', '/quiz-maker', '/shortener', '/login'];
+  const isAllowed = allowedPaths.some(path => location.pathname.startsWith(path));
 
   useEffect(() => {
     const checkMobile = () => {
@@ -20,7 +26,7 @@ const MobileBlocker = () => {
 
   return (
     <AnimatePresence>
-      {isMobile && (
+      {isMobile && !isAllowed && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, Settings, Layout, Image as ImageIcon, Check, Save, X, Trophy, Download, Play, Pause, CircleStop, Trash2 } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertCircle, Settings, Layout, Image as ImageIcon, Check, Save, X, Trophy, Download, Play, Pause, CircleStop, Trash2, QrCode, Copy } from 'lucide-react';
 import mammoth from 'mammoth';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import './QuizMaker.css';
 
 const QuizMaker = () => {
@@ -47,6 +48,8 @@ const QuizMaker = () => {
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [activeQuizTitle, setActiveQuizTitle] = useState('');
   const [activeQuizSlug, setActiveQuizSlug] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [generatedQuiz, setGeneratedQuiz] = useState(null);
 
   // --- Dashboard Logic ---
   useEffect(() => {
@@ -365,15 +368,15 @@ const QuizMaker = () => {
 
       if (quizId) {
         await updateDoc(doc(db, 'quizzes', quizId), quizData);
-        alert(`Cập nhật bài thi thành công!`);
+        setGeneratedQuiz({ id: quizId, ...quizData });
       } else {
         quizData.createdAt = serverTimestamp();
-        await addDoc(collection(db, 'quizzes'), quizData);
-        alert(`Khởi tạo bài thi thành công! Link tham gia: ${window.location.origin}/quiz/${slug}`);
+        const docRef = await addDoc(collection(db, 'quizzes'), quizData);
+        setGeneratedQuiz({ id: docRef.id, ...quizData });
       }
       
+      setShowSuccessModal(true);
       fetchUserQuizzes();
-      setStep(0); // Back to dashboard
       
     } catch (err) {
       console.error(err);
@@ -483,7 +486,6 @@ const QuizMaker = () => {
                             {new Date(quiz.config.expiryDate) < new Date() && quiz.config.expiryDate ? 'Hết hạn' : 'Đang mở'}
                           </span>
                         </td>
-                        <td className="actions-cell">
                           <div className="status-controls">
                             {quiz.status === 'paused' || !quiz.status ? (
                               <button onClick={() => handleUpdateStatus(quiz.id, 'open')} className="btn-icon play" title="Bắt đầu/Tiếp tục"><Play size={16} /></button>
@@ -493,6 +495,7 @@ const QuizMaker = () => {
                             <button onClick={() => handleUpdateStatus(quiz.id, 'ended')} className="btn-icon stop" title="Kết thúc (Công bố BXH)"><CircleStop size={16} /></button>
                           </div>
                           <div className="divider"></div>
+                          <button onClick={() => { setGeneratedQuiz(quiz); setShowSuccessModal(true); }} className="btn-icon qrcode" title="Mã QR"><QrCode size={16} /></button>
                           <button onClick={() => handleViewLeaderboard(quiz.slug, quiz.config.title)} className="btn-icon leaderboard" title="Bảng xếp hạng"><Trophy size={16} /></button>
                           <button onClick={() => handleEditQuiz(quiz)} className="btn-icon edit" title="Sửa"><Settings size={16} /></button>
                           <button onClick={() => handleDeleteQuizRecord(quiz.id)} className="btn-icon delete" title="Xóa"><Trash2 size={16} /></button>
@@ -864,6 +867,59 @@ const QuizMaker = () => {
                       </table>
                     </div>
                   )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* SUCCESS & QR MODAL */}
+        <AnimatePresence>
+          {showSuccessModal && generatedQuiz && (
+            <div className="modal-overlay">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="success-modal glass-panel shadow-glow"
+              >
+                <div className="success-icon-bg">
+                  <CheckCircle size={48} color="#10b981" />
+                </div>
+                <h2>BÀI THI ĐÃ SẴN SÀNG!</h2>
+                <p>Mã tham gia: <strong>{generatedQuiz.slug}</strong></p>
+
+                <div className="qr-container">
+                  <QRCodeSVG 
+                    value={`${window.location.origin}/quiz/${generatedQuiz.slug}`} 
+                    size={200}
+                    level="H"
+                    includeMargin={true}
+                    imageSettings={{
+                      src: "/logobct.png",
+                      x: undefined,
+                      y: undefined,
+                      height: 40,
+                      width: 40,
+                      excavate: true,
+                    }}
+                  />
+                  <small>Quét mã để truy cập nhanh</small>
+                </div>
+
+                <div className="share-link-box">
+                  <input readOnly value={`${window.location.origin}/quiz/${generatedQuiz.slug}`} />
+                  <button onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/quiz/${generatedQuiz.slug}`);
+                    alert("Đã copy link!");
+                  }}>
+                    <Copy size={18} /> COPY
+                  </button>
+                </div>
+
+                <div className="modal-footer-actions">
+                  <button onClick={() => { setShowSuccessModal(false); setStep(0); }} className="btn-primary">VỀ TRANG QUẢN LÝ</button>
+                  <button onClick={() => window.open(`/quiz/${generatedQuiz.slug}`, '_blank')} className="btn-secondary">XEM BÀI THI</button>
                 </div>
               </motion.div>
             </div>
