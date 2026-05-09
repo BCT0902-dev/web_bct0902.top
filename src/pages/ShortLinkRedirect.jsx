@@ -18,6 +18,16 @@ const ShortLinkRedirect = () => {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
+          
+          // Check expiration
+          if (data.expiresAt) {
+            const expiry = new Date(data.expiresAt.seconds * 1000);
+            if (expiry < new Date()) {
+              setStatus('expired');
+              return;
+            }
+          }
+
           // Increment click counter
           await updateDoc(docRef, {
             clicks: increment(1)
@@ -55,15 +65,19 @@ const ShortLinkRedirect = () => {
     );
   }
 
-  if (status === 'not_found' || status === 'error') {
+  if (status === 'not_found' || status === 'error' || status === 'expired') {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#050505', color: '#fff', padding: '2rem', textAlign: 'center' }}>
         <AlertCircle size={64} color="#ef4444" style={{ marginBottom: '1.5rem' }} />
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', marginBottom: '1rem' }}>LIÊN KẾT KHÔNG TỒN TẠI</h1>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', marginBottom: '1rem' }}>
+          {status === 'expired' ? 'LIÊN KẾT ĐÃ HẾT HẠN' : 'LIÊN KẾT KHÔNG TỒN TẠI'}
+        </h1>
         <p style={{ color: 'var(--text-muted)', maxWidth: '500px', lineHeight: 1.6, marginBottom: '2.5rem' }}>
-          {status === 'not_found' 
-            ? "Đường dẫn rút gọn này không tồn tại trong hệ thống BCT0902 hoặc đã bị gỡ bỏ." 
-            : "Đã xảy ra lỗi hệ thống khi cố gắng xử lý yêu cầu chuyển hướng của bạn."}
+          {status === 'expired' 
+            ? "Liên kết này được tạo bởi tài khoản Khách và đã hết hạn sau 30 ngày sử dụng."
+            : status === 'not_found' 
+              ? "Đường dẫn rút gọn này không tồn tại trong hệ thống BCT0902 hoặc đã bị gỡ bỏ." 
+              : "Đã xảy ra lỗi hệ thống khi cố gắng xử lý yêu cầu chuyển hướng của bạn."}
         </p>
         <button 
           onClick={() => navigate('/')}

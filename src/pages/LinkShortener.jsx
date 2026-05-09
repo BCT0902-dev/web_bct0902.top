@@ -1,19 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link2, Copy, Check, Scissors, RotateCcw, ExternalLink, Globe, Zap, ShieldCheck } from 'lucide-react';
+import { 
+  Link2, Copy, Check, Scissors, RotateCcw, ExternalLink, Globe, Zap, 
+  ShieldCheck, Trash2, Edit3, Clock, Lock, Unlock, User, Info, X, Save
+} from 'lucide-react';
 import { db } from '../firebase';
-import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { 
+  doc, setDoc, getDoc, collection, query, where, getDocs, 
+  deleteDoc, updateDoc, orderBy, onSnapshot 
+} from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import './LinkShortener.css';
 
 const LinkShortener = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, isAdmin } = useAuth();
   const [longUrl, setLongUrl] = useState('');
   const [customSlug, setCustomSlug] = useState('');
   const [shortUrl, setShortUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  
+  // UI States
+  const [showPopup, setShowPopup] = useState(false);
+  const [userLinks, setUserLinks] = useState([]);
+  const [loadingLinks, setLoadingLinks] = useState(true);
+  const [editingLink, setEditingLink] = useState(null);
+  const [editForm, setEditForm] = useState({ longUrl: '', slug: '' });
+
+  // Initial Popup Logic
+  useEffect(() => {
+    const hasSeenPopup = sessionStorage.getItem('bct_shortener_popup');
+    if (!hasSeenPopup) {
+      setShowPopup(true);
+      sessionStorage.setItem('bct_shortener_popup', 'true');
+    }
+  }, []);
+
+  // Fetch Links Logic
+  useEffect(() => {
+    let unsubscribe;
+    
+    const fetchLinks = () => {
+      setLoadingLinks(true);
+      let q;
+      if (isAdmin) {
+        // Admins see everything
+        q = query(collection(db, 'short_links'), orderBy('createdAt', 'desc'));
+      } else if (currentUser) {
+        // Users see their own links
+        q = query(collection(db, 'short_links'), where('createdBy', '==', currentUser.uid), orderBy('createdAt', 'desc'));
+      } else {
+        // Guests see nothing (or maybe local storage links? user didn't ask for it, just said login to manage)
+        setLoadingLinks(false);
+        setUserLinks([]);
+        return;
+      }
+
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const links = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setUserLinks(links);
+        setLoadingLinks(false);
+      }, (err) => {
+        console.error("Fetch links error:", err);
+        setLoadingLinks(false);
+      });
+    };
+
+    fetchLinks();
+    return () => unsubscribe && unsubscribe();
+  }, [currentUser, isAdmin]);
 
   const generateRandomSlug = (length = 6) => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -53,7 +109,6 @@ const LinkShortener = () => {
     try {
       let slug = customSlug.trim() || generateRandomSlug();
       
-      // Check if slug exists
       const docRef = doc(db, 'short_links', slug);
       const docSnap = await getDoc(docRef);
 
@@ -63,16 +118,19 @@ const LinkShortener = () => {
         return;
       }
 
-      // If it exists but it was random, try one more time or just fail
       if (docSnap.exists()) {
         slug = generateRandomSlug(7);
       }
 
+      const expirationDate = currentUser ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
       const linkData = {
         longUrl,
         slug,
-        createdBy: currentUser?.uid || 'anonymous',
+        createdBy: currentUser?.uid || 'guest',
+        creatorName: currentUser?.displayName || 'Khách',
         createdAt: new Date(),
+        expiresAt: expirationDate,
         clicks: 0
       };
 
@@ -88,130 +146,310 @@ const LinkShortener = () => {
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shortUrl);
+  const handleDelete = async (slug) => {
+    if (!window.confirm('Ngài có chắc chắn muốn xóa liên kết này vĩnh viễn?')) return;
+    try {
+      await deleteDoc(doc(db, 'short_links', slug));
+    } catch (err) {
+      alert("Lỗi khi xóa: " + err.message);
+    }
+  };
+
+  const startEdit = (link) => {
+    setEditingLink(link);
+    setEditForm({ longUrl: link.longUrl, slug: link.slug });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!validateUrl(editForm.longUrl)) {
+       alert("URL không hợp lệ!");
+       return;
+    }
+
+    try {
+      const docRef = doc(db, 'short_links', editingLink.slug);
+      
+      // If slug changed, we need to create new doc and delete old one
+      if (editForm.slug !== editingLink.slug) {
+         const newRef = doc(db, 'short_links', editForm.slug);
+         const checkSnap = await getDoc(newRef);
+         if (checkSnap.exists()) {
+            alert("Mã định danh mới đã tồn tại!");
+            return;
+         }
+         
+         await setDoc(newRef, {
+            ...editingLink,
+            longUrl: editForm.longUrl,
+            slug: editForm.slug,
+            updatedAt: new Date()
+         });
+         await deleteDoc(docRef);
+      } else {
+         await updateDoc(docRef, {
+            longUrl: editForm.longUrl,
+            updatedAt: new Date()
+         });
+      }
+      
+      setEditingLink(null);
+      alert("Cập nhật thành công!");
+    } catch (err) {
+      alert("Lỗi cập nhật: " + err.message);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const resetForm = () => {
-    setLongUrl('');
-    setCustomSlug('');
-    setShortUrl('');
-    setError('');
-  };
-
   return (
-    <div className="shortener-container">
+    <div className="shortener-page-wrapper">
       <div className="background-decor">
          <div className="glow-sphere sphere-1"></div>
          <div className="glow-sphere sphere-2"></div>
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="shortener-card glass-panel"
-      >
-        <div className="card-header">
-          <div className="icon-wrapper shadow-glow">
-            <Scissors size={28} className="text-glow" />
-          </div>
-          <h1 className="text-gradient">BCT_LINK_SHORTENER</h1>
-          <p className="subtitle">HỆ THỐNG RÚT GỌN LIÊN KẾT THÔNG MINH - IRIS ECOSYSTEM</p>
-        </div>
+      <div className="shortener-layout container">
+        {/* LEFT COLUMN: SHORTEN FORM */}
+        <div className="shortener-main-col">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="shortener-card glass-panel"
+          >
+            <div className="card-header">
+              <div className="icon-wrapper shadow-glow">
+                <Scissors size={28} className="text-glow" />
+              </div>
+              <h1 className="text-gradient">BCT_LINK_SHORTENER</h1>
+              <p className="subtitle">HỆ THỐNG RÚT GỌN LIÊN KẾT THÔNG MINH - IRIS ECOSYSTEM</p>
+            </div>
 
-        <form onSubmit={handleShorten} className="shortener-form">
-          <div className="input-group">
-            <label><Link2 size={16} /> ĐƯỜNG DẪN GỐC (LONG URL)</label>
-            <input 
-              type="text" 
-              placeholder="Dán link dài tại đây (https://...)" 
-              value={longUrl}
-              onChange={(e) => setLongUrl(e.target.value)}
-              className="main-input"
-            />
-          </div>
-
-          <div className="input-group">
-            <label><Globe size={16} /> MÃ ĐỊNH DANH TÙY CHỈNH (SLUG)</label>
-            <div className="input-row">
-              <div className="slug-input-wrapper flex-2">
-                <span className="domain-prefix">bct0902.top/</span>
+            <form onSubmit={handleShorten} className="shortener-form">
+              <div className="input-group">
+                <label><Link2 size={16} /> ĐƯỜNG DẪN GỐC (LONG URL)</label>
                 <input 
                   type="text" 
-                  placeholder="ví dụ: facebook (tùy chọn)" 
-                  value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
-                  className="slug-input"
+                  placeholder="Dán link dài tại đây (https://...)" 
+                  value={longUrl}
+                  onChange={(e) => setLongUrl(e.target.value)}
+                  className="main-input"
                 />
               </div>
-              
-              <button type="submit" className="btn-primary shorten-btn" disabled={loading}>
-                {loading ? <Zap className="spinning" size={20} /> : <Zap size={20} />}
-                <span>RÚT GỌN NGAY</span>
-              </button>
-            </div>
-            <small className="hint">Để trống để hệ thống tự tạo mã ngẫu nhiên.</small>
-          </div>
-        </form>
 
-        <AnimatePresence>
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="error-message"
-            >
-              <ShieldCheck size={16} /> {error}
-            </motion.div>
-          )}
-
-          {shortUrl && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="result-box shadow-glow"
-            >
-              <div className="result-header">
-                <span>KẾT QUẢ RÚT GỌN</span>
-                <button onClick={resetForm} className="reset-btn"><RotateCcw size={14} /> LÀM MỚI</button>
-              </div>
-              
-              <div className="url-display">
-                <span className="generated-url">{shortUrl}</span>
-                <div className="action-buttons">
-                  <button onClick={copyToClipboard} className={`action-btn copy-btn ${copied ? 'success' : ''}`}>
-                    {copied ? <Check size={18} /> : <Copy size={18} />}
-                    <span>{copied ? 'ĐÃ SAO CHÉP' : 'SAO CHÉP'}</span>
+              <div className="input-group">
+                <label><Globe size={16} /> MÃ ĐỊNH DANH TÙY CHỈNH (SLUG)</label>
+                <div className="input-row">
+                  <div className="slug-input-wrapper flex-2">
+                    <span className="domain-prefix">bct0902.top/</span>
+                    <input 
+                      type="text" 
+                      placeholder="ví dụ: facebook (tùy chọn)" 
+                      value={customSlug}
+                      onChange={(e) => setCustomSlug(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                      className="slug-input"
+                    />
+                  </div>
+                  
+                  <button type="submit" className="btn-primary shorten-btn" disabled={loading}>
+                    {loading ? <Zap className="spinning" size={20} /> : <Zap size={20} />}
+                    <span>RÚT GỌN NGAY</span>
                   </button>
-                  <a href={shortUrl} target="_blank" rel="noreferrer" className="action-btn open-btn">
-                    <ExternalLink size={18} />
-                  </a>
                 </div>
+                <small className="hint">Để trống để hệ thống tự tạo mã ngẫu nhiên.</small>
+              </div>
+            </form>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="error-message"
+                >
+                  <ShieldCheck size={16} /> {error}
+                </motion.div>
+              )}
+
+              {shortUrl && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="result-box shadow-glow"
+                >
+                  <div className="result-header">
+                    <span>KẾT QUẢ RÚT GỌN</span>
+                    <button onClick={() => setShortUrl('')} className="reset-btn"><RotateCcw size={14} /> LÀM MỚI</button>
+                  </div>
+                  
+                  <div className="url-display">
+                    <span className="generated-url">{shortUrl}</span>
+                    <div className="action-buttons">
+                      <button onClick={() => copyToClipboard(shortUrl)} className={`action-btn copy-btn ${copied ? 'success' : ''}`}>
+                        {copied ? <Check size={18} /> : <Copy size={18} />}
+                        <span>{copied ? 'ĐÃ SAO CHÉP' : 'SAO CHÉP'}</span>
+                      </button>
+                      <a href={shortUrl} target="_blank" rel="noreferrer" className="action-btn open-btn">
+                        <ExternalLink size={18} />
+                      </a>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="policy-info">
+               <div className="policy-item">
+                  <Clock size={16} />
+                  <span>Mặc định (Khách): 30 ngày</span>
+               </div>
+               <div className="policy-item">
+                  <Lock size={16} />
+                  <span>Đăng nhập: Vĩnh viễn</span>
+               </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* RIGHT COLUMN: MANAGEMENT PANEL */}
+        <div className="shortener-side-col">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="management-panel glass-panel"
+          >
+            <div className="panel-header">
+              <h3><ShieldCheck size={20} /> QUẢN LÝ LIÊN KẾT</h3>
+              {isAdmin && <span className="admin-badge">ADMIN_ACCESS</span>}
+            </div>
+
+            <div className="links-list-container custom-scrollbar">
+              {!currentUser && !isAdmin ? (
+                <div className="login-prompt-empty">
+                  <User size={40} />
+                  <p>Hãy đăng nhập để quản lý và lưu trữ liên kết của ngài vĩnh viễn.</p>
+                  <button onClick={() => window.location.href='/login'} className="btn-secondary">ĐĂNG NHẬP NGAY</button>
+                </div>
+              ) : loadingLinks ? (
+                <div className="loading-links">Đang tải dữ liệu...</div>
+              ) : userLinks.length === 0 ? (
+                <div className="no-links">Chưa có liên kết nào được tạo.</div>
+              ) : (
+                <div className="links-list">
+                  {userLinks.map(link => (
+                    <motion.div layout key={link.id} className="link-item">
+                      <div className="link-info">
+                        <div className="link-slug-row">
+                           <span className="link-slug">/{link.slug}</span>
+                           <span className="link-clicks">{link.clicks} clicks</span>
+                        </div>
+                        <div className="link-url-row" title={link.longUrl}>
+                           {link.longUrl}
+                        </div>
+                        <div className="link-meta">
+                           <span className="expiry">
+                              {link.expiresAt ? (
+                                <>Hết hạn: {new Date(link.expiresAt.seconds * 1000).toLocaleDateString('vi-VN')}</>
+                              ) : (
+                                <><Unlock size={12} /> Vĩnh viễn</>
+                              )}
+                           </span>
+                           {isAdmin && <span className="owner">@{link.creatorName}</span>}
+                        </div>
+                      </div>
+                      
+                      <div className="link-actions">
+                         <button onClick={() => startEdit(link)} className="action-icon edit"><Edit3 size={16} /></button>
+                         <button onClick={() => handleDelete(link.slug)} className="action-icon delete"><Trash2 size={16} /></button>
+                         <button onClick={() => copyToClipboard(`${window.location.origin.replace('www.', '')}/${link.slug}`)} className="action-icon copy"><Copy size={16} /></button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* POPUP MODAL */}
+      <AnimatePresence>
+        {showPopup && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="modal-overlay"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="info-popup glass-panel shadow-glow"
+            >
+              <button className="close-popup" onClick={() => setShowPopup(false)}><X size={20} /></button>
+              <div className="popup-icon">
+                 <Info size={40} className="text-glow" />
+              </div>
+              <h2>THÔNG BÁO HỆ THỐNG</h2>
+              <div className="popup-content">
+                <p>Chào mừng ngài đến với trình rút gọn liên kết <strong>BCT IRIS</strong>.</p>
+                <ul>
+                  <li><strong>Tài khoản khách:</strong> Liên kết sẽ tự động hết hạn sau <strong>30 ngày</strong>.</li>
+                  <li><strong>Tài khoản thành viên:</strong> Lưu trữ <strong>vĩnh viễn</strong> và có quyền quản lý, chỉnh sửa liên kết.</li>
+                </ul>
+                <p className="highlight">Hãy đăng nhập để có quyền kiểm soát tối đa!</p>
+              </div>
+              <div className="popup-actions">
+                 {!currentUser && <button onClick={() => window.location.href='/login'} className="btn-primary">ĐĂNG NHẬP NGAY</button>}
+                 <button onClick={() => setShowPopup(false)} className="btn-secondary">TÔI ĐÃ HIỂU</button>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
 
-        <div className="card-footer">
-          <div className="stat-item">
-            <span className="stat-value">UNLIMITED</span>
-            <span className="stat-label">LINKS</span>
-          </div>
-          <div className="divider-v"></div>
-          <div className="stat-item">
-            <span className="stat-value">SECURE</span>
-            <span className="stat-label">ENCRYPTION</span>
-          </div>
-          <div className="divider-v"></div>
-          <div className="stat-item">
-            <span className="stat-value">REALTIME</span>
-            <span className="stat-label">TRACKING</span>
-          </div>
-        </div>
-      </motion.div>
+        {/* EDIT MODAL */}
+        {editingLink && (
+           <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="modal-overlay"
+          >
+            <motion.div 
+              className="edit-popup glass-panel shadow-glow"
+            >
+              <h3><Edit3 size={20} /> CHỈNH SỬA LIÊN KẾT</h3>
+              <form onSubmit={handleUpdate} className="edit-form">
+                 <div className="edit-input-group">
+                    <label>ĐƯỜNG DẪN GỐC</label>
+                    <input 
+                      type="text" 
+                      value={editForm.longUrl} 
+                      onChange={(e) => setEditForm({...editForm, longUrl: e.target.value})}
+                    />
+                 </div>
+                 <div className="edit-input-group">
+                    <label>MÃ ĐỊNH DANH (SLUG)</label>
+                    <input 
+                      type="text" 
+                      value={editForm.slug} 
+                      onChange={(e) => setEditForm({...editForm, slug: e.target.value})}
+                    />
+                    <small>* Thay đổi slug sẽ làm link cũ không hoạt động.</small>
+                 </div>
+                 <div className="edit-actions">
+                    <button type="button" onClick={() => setEditingLink(null)} className="btn-secondary">HỦY</button>
+                    <button type="submit" className="btn-primary"><Save size={16} /> LƯU THAY ĐỔI</button>
+                 </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
