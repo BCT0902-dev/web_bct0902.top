@@ -19,6 +19,7 @@ const QuizMaker = () => {
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [answerFormat, setAnswerFormat] = useState('bold'); // 'bold', 'italic', 'aiken'
   
   // Config States
   const [config, setConfig] = useState({
@@ -35,7 +36,7 @@ const QuizMaker = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   // --- Parsing Logic ---
-  const parseHtmlDocx = (htmlString) => {
+  const parseHtmlDocx = (htmlString, format) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
     // mammoth mostly outputs <p> but sometimes lists <li>
@@ -68,15 +69,16 @@ const QuizMaker = () => {
                 const optLetter = text.match(/^[A-Z]/i)[0].toUpperCase();
                 currentQuestion.options.push({ letter: optLetter, text: optText });
                 
-                // Detect if option is bold (correct answer)
-                // mammoth wraps bold in <strong>
-                if (el.querySelector('strong') || el.querySelector('b')) {
+                // Check format logic
+                if (format === 'bold' && (el.querySelector('strong') || el.querySelector('b'))) {
+                    currentQuestion.correctAnswer = optLetter;
+                } else if (format === 'italic' && (el.querySelector('em') || el.querySelector('i'))) {
                     currentQuestion.correctAnswer = optLetter;
                 }
             }
         } 
-        // 3. Match answer (ANSWER: X or Đáp án: X) - Fallback for Aiken
-        else if (/^(ANSWER|ĐÁP ÁN|DAPAN|ĐÁP ÁN ĐÚNG)\s*[:\-]\s*[A-Z]/i.test(text)) {
+        // 3. Match answer (ANSWER: X) - Specifically for Aiken format
+        else if (format === 'aiken' && /^(ANSWER|ĐÁP ÁN|DAPAN|ĐÁP ÁN ĐÚNG)\s*[:\-]\s*[A-Z]/i.test(text)) {
             if (currentQuestion) {
                 const ansMatch = text.match(/[A-Z]$/i);
                 if (ansMatch) {
@@ -122,7 +124,7 @@ const QuizMaker = () => {
       const result = await mammoth.convertToHtml({ arrayBuffer });
       const htmlText = result.value;
       
-      const parsed = parseHtmlDocx(htmlText);
+      const parsed = parseHtmlDocx(htmlText, answerFormat);
       if (parsed.length === 0) {
         setError('Không tìm thấy câu hỏi nào hợp lệ. Vui lòng kiểm tra lại định dạng file Word.');
         setStep(1);
@@ -226,6 +228,36 @@ const QuizMaker = () => {
         {/* STEP 1: UPLOAD */}
         {step === 1 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="upload-section glass-panel shadow-glow">
+            
+            <div className="format-selector" style={{ marginBottom: '2rem', textAlign: 'left', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+               <h3 style={{ marginBottom: '1rem', color: 'var(--accent-main)' }}>1. CHỌN ĐỊNH DẠNG ĐÁP ÁN ĐÚNG TRONG FILE WORD CỦA BẠN</h3>
+               <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                 <label className="radio-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', background: answerFormat === 'bold' ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)', border: `1px solid ${answerFormat === 'bold' ? 'var(--accent-main)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', cursor: 'pointer' }}>
+                   <input type="radio" name="format" value="bold" checked={answerFormat === 'bold'} onChange={(e) => setAnswerFormat(e.target.value)} style={{ width: '18px', height: '18px' }} />
+                   <div>
+                     <strong style={{ display: 'block' }}>In Đậm (Bold)</strong>
+                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>VD: <strong>A. Đáp án đúng</strong></span>
+                   </div>
+                 </label>
+                 
+                 <label className="radio-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', background: answerFormat === 'italic' ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)', border: `1px solid ${answerFormat === 'italic' ? 'var(--accent-main)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', cursor: 'pointer' }}>
+                   <input type="radio" name="format" value="italic" checked={answerFormat === 'italic'} onChange={(e) => setAnswerFormat(e.target.value)} style={{ width: '18px', height: '18px' }} />
+                   <div>
+                     <strong style={{ display: 'block' }}>In Nghiêng (Italic)</strong>
+                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>VD: <em>B. Đáp án đúng</em></span>
+                   </div>
+                 </label>
+
+                 <label className="radio-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', background: answerFormat === 'aiken' ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)', border: `1px solid ${answerFormat === 'aiken' ? 'var(--accent-main)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', cursor: 'pointer' }}>
+                   <input type="radio" name="format" value="aiken" checked={answerFormat === 'aiken'} onChange={(e) => setAnswerFormat(e.target.value)} style={{ width: '18px', height: '18px' }} />
+                   <div>
+                     <strong style={{ display: 'block' }}>Từ khóa Aiken</strong>
+                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>VD: ANSWER: C (Ở cuối câu)</span>
+                   </div>
+                 </label>
+               </div>
+            </div>
+
             <div 
               className="upload-dropzone" 
               onClick={() => fileInputRef.current?.click()}
@@ -245,37 +277,9 @@ const QuizMaker = () => {
               ) : (
                 <>
                   <UploadCloud size={64} className="upload-icon text-gradient" />
-                  <h2>Bấm hoặc kéo thả file <code>.docx</code> vào đây</h2>
-                  <p>Hệ thống tự động nhận diện AIKEN Format (ANSWER: A) hoặc Đáp án BÔI ĐẬM (Bold)</p>
+                  <h2>2. BẤM HOẶC KÉO THẢ FILE <code>.docx</code> VÀO ĐÂY ĐỂ PHÂN TÍCH</h2>
                 </>
               )}
-            </div>
-
-            <div className="format-guide">
-              <h3><CheckCircle size={18} /> ĐỊNH DẠNG CHUẨN ĐỂ NHẬN DIỆN</h3>
-              <div style={{ display: 'flex', gap: '2rem', textAlign: 'left', marginTop: '1rem' }}>
-                 <div style={{ flex: 1, background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px' }}>
-                    <h4 style={{ color: 'var(--accent-main)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>CÁCH 1: BÔI ĐẬM ĐÁP ÁN (Khuyên dùng)</h4>
-                    <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.6 }}>
-                      Câu 1: Khái niệm về tuyên truyền miệng?<br/>
-                      A. Tuyến truyền miệng là một hình thức...<br/>
-                      B. Tuyến truyền miệng là một phương pháp...<br/>
-                      <strong>C. Tất cả đều đúng (Câu đúng bôi đậm)</strong><br/>
-                      D. Không có đáp án nào
-                    </div>
-                 </div>
-                 <div style={{ flex: 1, background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px' }}>
-                    <h4 style={{ color: 'var(--accent-main)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>CÁCH 2: DÙNG TỪ KHÓA (AIKEN FORMAT)</h4>
-                    <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.6 }}>
-                      Câu 2: Năm 2024 là năm con gì?<br/>
-                      A. Con Chuột<br/>
-                      B. Con Rồng<br/>
-                      C. Con Mèo<br/>
-                      D. Con Rắn<br/>
-                      ANSWER: B
-                    </div>
-                 </div>
-              </div>
             </div>
           </motion.div>
         )}
