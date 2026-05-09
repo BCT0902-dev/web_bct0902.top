@@ -10,6 +10,7 @@ import {
   deleteDoc, updateDoc, orderBy, onSnapshot 
 } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import { QRCodeCanvas } from 'qrcode.react';
 import './LinkShortener.css';
 
 const LinkShortener = () => {
@@ -206,6 +207,20 @@ const LinkShortener = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const downloadQRCode = () => {
+    const canvas = document.getElementById('qr-gen');
+    if (!canvas) return;
+    const pngUrl = canvas
+      .toDataURL("image/png")
+      .replace("image/png", "image/octet-stream");
+    let downloadLink = document.createElement("a");
+    downloadLink.href = pngUrl;
+    downloadLink.download = `bct_qr_${customSlug || 'short'}.png`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
+
   return (
     <div className="shortener-page-wrapper">
       <div className="background-decor">
@@ -287,16 +302,43 @@ const LinkShortener = () => {
                     <button onClick={() => setShortUrl('')} className="reset-btn"><RotateCcw size={14} /> LÀM MỚI</button>
                   </div>
                   
-                  <div className="url-display">
-                    <span className="generated-url">{shortUrl}</span>
-                    <div className="action-buttons">
-                      <button onClick={() => copyToClipboard(shortUrl)} className={`action-btn copy-btn ${copied ? 'success' : ''}`}>
-                        {copied ? <Check size={18} /> : <Copy size={18} />}
-                        <span>{copied ? 'ĐÃ SAO CHÉP' : 'SAO CHÉP'}</span>
+                  <div className="result-main">
+                    <div className="qr-container">
+                      <QRCodeCanvas
+                        id="qr-gen"
+                        value={shortUrl}
+                        size={120}
+                        bgColor={"transparent"}
+                        fgColor={"#00f0ff"}
+                        level={"H"}
+                        includeMargin={true}
+                        imageSettings={{
+                          src: "/logobct.png",
+                          x: undefined,
+                          y: undefined,
+                          height: 24,
+                          width: 24,
+                          excavate: true,
+                        }}
+                      />
+                      <button onClick={downloadQRCode} className="qr-download-btn">
+                        TẢI MÃ QR
                       </button>
-                      <a href={shortUrl} target="_blank" rel="noreferrer" className="action-btn open-btn">
-                        <ExternalLink size={18} />
-                      </a>
+                    </div>
+
+                    <div className="url-display-wrapper">
+                      <div className="url-display">
+                        <span className="generated-url">{shortUrl}</span>
+                        <div className="action-buttons">
+                          <button onClick={() => copyToClipboard(shortUrl)} className={`action-btn copy-btn ${copied ? 'success' : ''}`}>
+                            {copied ? <Check size={18} /> : <Copy size={18} />}
+                            <span>{copied ? 'ĐÃ SAO CHÉP' : 'SAO CHÉP'}</span>
+                          </button>
+                          <a href={shortUrl} target="_blank" rel="noreferrer" className="action-btn open-btn">
+                            <ExternalLink size={18} />
+                          </a>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
