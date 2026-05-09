@@ -23,6 +23,8 @@
   --font-heading: 'Outfit', sans-serif;
   --font-mono: 'Fira Code', monospace;
   
+  --font-tech: 'Chakra Petch', sans-serif;
+  
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   --grid-color: rgba(255, 255, 255, 0.05);

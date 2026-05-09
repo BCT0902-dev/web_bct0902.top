@@ -126,8 +126,9 @@ const Navbar = () => {
                   <Link 
                     to={link === 'blog' ? "/blog" : (link === 'shortener' ? "/shortener" : "/chronicles")}
                     style={{ 
-                      fontFamily: 'var(--font-mono)', 
-                      fontSize: '0.9rem',
+                      fontFamily: 'var(--font-tech)', 
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
                       textTransform: 'uppercase',
                       opacity: 0.8,
                       textDecoration: 'none',
@@ -149,8 +150,9 @@ const Navbar = () => {
                   <a 
                     href={`/#${link}`} 
                     style={{ 
-                      fontFamily: 'var(--font-mono)', 
-                      fontSize: '0.9rem',
+                      fontFamily: 'var(--font-tech)', 
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
                       textTransform: 'uppercase',
                       opacity: 0.8,
                       textDecoration: 'none',
