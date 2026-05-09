@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, Settings, Layout, Image as ImageIcon, Check, Save, X } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertCircle, Settings, Layout, Image as ImageIcon, Check, Save, X, Trophy, Download } from 'lucide-react';
 import mammoth from 'mammoth';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
@@ -42,6 +42,10 @@ const QuizMaker = () => {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [currentLeaderboard, setCurrentLeaderboard] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [activeQuizTitle, setActiveQuizTitle] = useState('');
 
   // --- Dashboard Logic ---
   useEffect(() => {
@@ -73,6 +77,26 @@ const QuizMaker = () => {
       setError("Không thể tải danh sách bài thi.");
     } finally {
       setIsLoadingQuizzes(false);
+    }
+  };
+
+  const handleViewLeaderboard = async (slug, title) => {
+    setLeaderboardLoading(true);
+    setShowLeaderboard(true);
+    setActiveQuizTitle(title);
+    try {
+      const resultsRef = collection(db, 'quiz_results');
+      const q = query(resultsRef, where('quizSlug', '==', slug));
+      const snapshot = await getDocs(q);
+      const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Sort by score desc, then timeSpent asc
+      results.sort((a, b) => b.score - a.score || a.timeSpent - b.timeSpent);
+      setCurrentLeaderboard(results);
+    } catch (err) {
+      console.error("Error fetching leaderboard:", err);
+      setError("Không thể tải bảng xếp hạng!");
+    } finally {
+      setLeaderboardLoading(false);
     }
   };
 
@@ -404,6 +428,7 @@ const QuizMaker = () => {
                           </span>
                         </td>
                         <td className="actions-cell">
+                          <button onClick={() => handleViewLeaderboard(quiz.slug, quiz.config.title)} className="btn-icon leaderboard" title="Bảng xếp hạng"><Trophy size={16} /></button>
                           <button onClick={() => handleEditQuiz(quiz)} className="btn-icon edit">Sửa</button>
                           <button onClick={() => handleDeleteQuizRecord(quiz.id)} className="btn-icon delete">Xóa</button>
                           <button onClick={() => window.open(`/quiz/${quiz.slug}`, '_blank')} className="btn-icon view">Xem</button>
@@ -716,6 +741,59 @@ const QuizMaker = () => {
           </motion.div>
         )}
 
+        {/* LEADERBOARD MODAL */}
+        <AnimatePresence>
+          {showLeaderboard && (
+            <div className="modal-overlay">
+              <motion.div 
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+                className="leaderboard-modal glass-panel"
+              >
+                <div className="modal-header">
+                  <h3><Trophy size={24} className="text-gradient" /> BẢNG XẾP HẠNG: {activeQuizTitle}</h3>
+                  <button onClick={() => setShowLeaderboard(false)} className="close-btn"><X size={24} /></button>
+                </div>
+
+                <div className="modal-body">
+                  {leaderboardLoading ? (
+                    <div className="loading-state">Đang tải dữ liệu...</div>
+                  ) : currentLeaderboard.length === 0 ? (
+                    <div className="empty-state">Chưa có thí sinh nào làm bài thi này.</div>
+                  ) : (
+                    <div className="leaderboard-table-wrapper">
+                      <table className="leaderboard-table">
+                        <thead>
+                          <tr>
+                            <th>Hạng</th>
+                            <th>Thí sinh</th>
+                            <th>Điểm</th>
+                            <th>Số câu đúng</th>
+                            <th>Thời gian làm</th>
+                            <th>Ngày nộp</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentLeaderboard.map((res, idx) => (
+                            <tr key={res.id} className={idx < 3 ? `top-${idx+1}` : ''}>
+                              <td>{idx + 1}</td>
+                              <td><strong>{res.userName}</strong></td>
+                              <td className="score-cell">{res.score}</td>
+                              <td>{res.correctCount} / {res.totalCount}</td>
+                              <td>{Math.floor(res.timeSpent / 60)}p {res.timeSpent % 60}s</td>
+                              <td>{res.submittedAt?.toDate().toLocaleString('vi-VN')}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
