@@ -397,6 +397,31 @@ const QuizMaker = () => {
     }
   };
 
+  const downloadQRCode = () => {
+    const svg = document.querySelector(".qr-wrapper svg");
+    if (!svg) return;
+    
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.fillStyle = "white"; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      const pngFile = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.download = `QR_${generatedQuiz.slug}.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+    
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+  };
+
   const handleDeleteQuestion = (id) => {
     if(window.confirm('Ngài có chắc muốn xóa câu hỏi này khỏi danh sách?')) {
         const newQs = questions.filter(q => q.id !== id);
@@ -874,24 +899,23 @@ const QuizMaker = () => {
           )}
         </AnimatePresence>
 
-        {/* SUCCESS & QR MODAL */}
         <AnimatePresence>
           {showSuccessModal && generatedQuiz && (
             <div className="quiz-success-modal-overlay" onClick={() => setShowSuccessModal(false)}>
               <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="quiz-success-modal glass-panel shadow-glow"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="quiz-success-modal shadow-glow"
                 onClick={e => e.stopPropagation()}
               >
                 <div className="success-icon-bg">
-                  <CheckCircle size={48} color="#10b981" />
+                  <CheckCircle size={40} color="#10b981" />
                 </div>
                 <h2>BÀI THI ĐÃ SẴN SÀNG!</h2>
-                <p>Mã tham gia: <strong>{generatedQuiz.slug}</strong></p>
+                <p>Mã tham gia: <strong style={{color: 'var(--accent-main)'}}>{generatedQuiz.slug}</strong></p>
 
-                <div className="qr-container">
+                <div className="qr-wrapper">
                   <QRCodeSVG 
                     value={`${window.location.origin}/quiz/${generatedQuiz.slug}`} 
                     size={200}
@@ -906,8 +930,11 @@ const QuizMaker = () => {
                       excavate: true,
                     }}
                   />
-                  <small>Quét mã để truy cập nhanh</small>
                 </div>
+
+                <button onClick={downloadQRCode} className="qr-download-btn">
+                   <Download size={18} /> TẢI MÃ QR VỀ MÁY
+                </button>
 
                 <div className="share-link-box">
                   <input readOnly value={`${window.location.origin}/quiz/${generatedQuiz.slug}`} />
@@ -915,12 +942,12 @@ const QuizMaker = () => {
                     navigator.clipboard.writeText(`${window.location.origin}/quiz/${generatedQuiz.slug}`);
                     alert("Đã copy link!");
                   }}>
-                    <Copy size={18} /> COPY
+                    <Copy size={16} /> COPY
                   </button>
                 </div>
 
                 <div className="modal-footer-actions">
-                  <button onClick={() => { setShowSuccessModal(false); setStep(0); }} className="btn-primary">VỀ TRANG QUẢN LÝ</button>
+                  <button onClick={() => { setShowSuccessModal(false); setStep(0); }} className="btn-primary">QUẢN LÝ</button>
                   <button onClick={() => window.open(`/quiz/${generatedQuiz.slug}`, '_blank')} className="btn-secondary">XEM BÀI THI</button>
                 </div>
               </motion.div>
