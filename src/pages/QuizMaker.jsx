@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, Settings, Layout, Image as ImageIcon, Check, Save, X, Trophy, Download, Play, Pause, CircleStop, Trash2, QrCode, Copy } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertCircle, Settings, Layout, Image as ImageIcon, Check, Save, X, Trophy, Download, Play, Pause, CircleStop, Trash2, QrCode, Copy, User, Search, RotateCcw } from 'lucide-react';
 import mammoth from 'mammoth';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
@@ -50,6 +50,10 @@ const QuizMaker = () => {
   const [activeQuizSlug, setActiveQuizSlug] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [quizToShare, setQuizToShare] = useState(null);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
 
   // --- Dashboard Logic ---
   useEffect(() => {
@@ -196,26 +200,26 @@ const QuizMaker = () => {
     }
   };
 
-  const handleCloneQuiz = async (quiz) => {
-    const recipientId = window.prompt("Nhập UID hoặc Email của người nhận (Để trống nếu muốn clone cho chính mình):");
-    if (recipientId === null) return;
-
+  const handleCloneQuiz = async (recipient) => {
+    if (!quizToShare) return;
+    
     setIsSaving(true);
     try {
       const newSlug = generateSlug();
       const cloneData = {
-        ...quiz,
+        ...quizToShare,
         slug: newSlug,
-        creatorId: recipientId.trim() || quiz.creatorId,
-        creatorName: recipientId.trim() ? `Shared_to_${recipientId}` : quiz.creatorName,
+        creatorId: recipient.uid,
+        creatorName: recipient.displayName || recipient.email,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         status: 'active'
       };
-      delete cloneData.id; // Remove original ID
+      delete cloneData.id;
       
       await addDoc(collection(db, 'quizzes'), cloneData);
-      alert(`Đã sao chép bài thi thành công! Mã tham gia mới: ${newSlug}`);
+      alert(`Đã chia sẻ bài thi cho ${recipient.displayName || recipient.email} thành công!`);
+      setShowShareModal(false);
       fetchUserQuizzes();
     } catch (err) {
       console.error("Error cloning quiz:", err);
@@ -224,6 +228,23 @@ const QuizMaker = () => {
       setIsSaving(false);
     }
   };
+
+  const fetchUsers = async () => {
+    try {
+      const usersRef = collection(db, 'users');
+      const snapshot = await getDocs(usersRef);
+      const list = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+      setAllUsers(list);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (showShareModal) {
+      fetchUsers();
+    }
+  }, [showShareModal]);
 
   const handleResetAttempt = async (quizSlug, userName, participantData) => {
       if (!window.confirm(`Reset lượt thi cho thí sinh ${userName}?`)) return;
@@ -594,7 +615,7 @@ const QuizMaker = () => {
                             )}
                           </div>
                           <div className="divider"></div>
-                          <button onClick={() => handleCloneQuiz(quiz)} className="btn-icon share" title="Sao chép cho người khác"><Copy size={16} /></button>
+                          <button onClick={() => { setQuizToShare(quiz); setShowShareModal(true); }} className="btn-icon share" title="Chia sẻ cho người khác"><Copy size={16} /></button>
                           <button onClick={() => { setGeneratedQuiz(quiz); setShowSuccessModal(true); }} className="btn-icon qrcode" title="Mã QR"><QrCode size={16} /></button>
                           <button onClick={() => handleViewLeaderboard(quiz.slug, quiz.config.title)} className="btn-icon leaderboard" title="Bảng xếp hạng"><Trophy size={16} /></button>
                           <button onClick={() => handleEditQuiz(quiz)} className="btn-icon edit" title="Sửa"><Settings size={16} /></button>
@@ -1075,6 +1096,59 @@ const QuizMaker = () => {
                 <div className="modal-footer-actions">
                   <button onClick={() => { setShowSuccessModal(false); setStep(0); }} className="btn-primary">QUẢN LÝ</button>
                   <button onClick={() => window.open(`/quiz/${generatedQuiz.slug}`, '_blank')} className="btn-secondary">XEM BÀI THI</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showShareModal && (
+            <div className="modal-overlay">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="share-selection-modal glass-panel shadow-glow"
+                style={{ maxWidth: '500px', width: '90%' }}
+              >
+                <div className="modal-header">
+                  <h3><User size={24} color="var(--accent-main)" /> CHỌN NGƯỜI NHẬN</h3>
+                  <button onClick={() => setShowShareModal(false)} className="close-btn"><X size={24} /></button>
+                </div>
+                <div className="modal-body">
+                  <div className="search-box-light" style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+                    <input 
+                      type="text" 
+                      placeholder="Tìm kiếm theo tên hoặc email..." 
+                      value={userSearchTerm}
+                      onChange={e => setUserSearchTerm(e.target.value)}
+                      style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.5rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    />
+                  </div>
+                  <div className="user-selection-list" style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    {allUsers
+                      .filter(u => 
+                        u.displayName?.toLowerCase().includes(userSearchTerm.toLowerCase()) || 
+                        u.email?.toLowerCase().includes(userSearchTerm.toLowerCase())
+                      )
+                      .map(user => (
+                        <div 
+                          key={user.uid} 
+                          className="user-selection-item"
+                          onClick={() => handleCloneQuiz(user)}
+                          style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '1rem' }}
+                        >
+                          <div className="user-avatar-mini" style={{ width: '40px', height: '40px', background: 'var(--accent-main)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 'bold' }}>
+                            {(user.displayName || user.email || '?')[0].toUpperCase()}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 'bold' }}>{user.displayName || 'Anonymous'}</div>
+                            <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>{user.email}</div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </motion.div>
             </div>
