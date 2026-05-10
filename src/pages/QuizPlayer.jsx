@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Timer, CheckCircle, ChevronRight, ChevronLeft, Send, AlertCircle, Award, Layout, LogOut, Trophy } from 'lucide-react';
+import { Timer, CheckCircle, ChevronRight, ChevronLeft, Send, AlertCircle, Award, Layout, LogOut, Trophy, Check, X } from 'lucide-react';
 
 const QuizPlayer = () => {
     const { slug } = useParams();
