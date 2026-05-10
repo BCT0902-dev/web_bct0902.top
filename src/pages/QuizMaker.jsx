@@ -762,11 +762,12 @@ const QuizMaker = () => {
                       <label><input type="checkbox" checked={config.hasLeaderboard} onChange={e => setConfig({...config, hasLeaderboard: e.target.checked})} /> Cho phép lưu kết quả và hiện bảng xếp hạng</label>
                       <label><input type="checkbox" checked={config.allowRetry} onChange={e => setConfig({...config, allowRetry: e.target.checked})} /> Cho phép làm lại bài thi</label>
                     </div>
-                    {config.allowRetry && (
-                        <label className="contrast-label">SỐ LẦN LÀM LẠI TỐI ĐA</label>
-                        <input type="number" min="1" max="100" value={config.retryLimit} onChange={e => setConfig({...config, retryLimit: parseInt(e.target.value)})} />
-                      </div>
-                    )}
+                     {config.allowRetry && (
+                       <div className="retry-limit-config">
+                         <label className="contrast-label">SỐ LẦN LÀM LẠI TỐI ĐA</label>
+                         <input type="number" min="1" max="100" value={config.retryLimit} onChange={e => setConfig({...config, retryLimit: parseInt(e.target.value)})} />
+                       </div>
+                     )}
                   </div>
                 </div>
               </div>

@@ -99,7 +99,6 @@ const BlogCMS = () => {
       showStatus(isPublishing ? "ĐÃ XUẤT BẢN!" : "ĐÃ LƯU BẢN NHÁP!");
       
       if (id === 'new') {
-        // Soft redirect to edit mode without full reload
         window.history.replaceState(null, '', `/admin/cms/${targetId}`);
       }
     } catch (err) {
@@ -118,7 +117,6 @@ const BlogCMS = () => {
       }
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Advanced Auto-Compression (Target 1200x630 SEO friendly)
         const img = new Image();
         img.src = reader.result;
         img.onload = () => {
@@ -147,7 +145,6 @@ const BlogCMS = () => {
 
   return (
     <div className="cms-container">
-      {/* HEADER BAR */}
       <header className="cms-header">
         <div className="cms-header-left">
           <button className="back-btn" onClick={() => navigate('/admin')}>
@@ -162,27 +159,16 @@ const BlogCMS = () => {
           />
         </div>
         <div className="cms-header-actions">
-          <button 
-            className="cms-btn draft" 
-            disabled={saving} 
-            onClick={() => handleSave(false)}
-          >
+          <button className="cms-btn draft" disabled={saving} onClick={() => handleSave(false)}>
             <Save size={16} /> LƯU NHÁP
           </button>
-          <button 
-            className="cms-btn publish" 
-            disabled={saving} 
-            onClick={() => handleSave(true)}
-          >
+          <button className="cms-btn publish" disabled={saving} onClick={() => handleSave(true)}>
             <Send size={16} /> XUẤT BẢN NGAY
           </button>
         </div>
       </header>
 
-      {/* BODY AREA */}
       <div className="cms-body">
-        
-        {/* SIDEBAR METADATA */}
         <aside className="cms-sidebar">
           <div className="cms-sidebar-section">
              <label>ẢNH BÌA (COVER IMAGE)</label>
@@ -202,23 +188,12 @@ const BlogCMS = () => {
 
           <div className="cms-sidebar-section">
             <label>ĐƯỜNG DẪN BÀI VIẾT (SLUG)</label>
-            <input 
-              type="text" 
-              className="cms-input" 
-              value={slug} 
-              onChange={e => setSlug(e.target.value)} 
-              placeholder="VD: cac-tinh-nang-react-19" 
-            />
+            <input type="text" className="cms-input" value={slug} onChange={e => setSlug(e.target.value)} placeholder="VD: cac-tinh-nang-react-19" />
           </div>
 
           <div className="cms-sidebar-section">
             <label>DANH MỤC LƯU TRỮ</label>
-            <select 
-              className="cms-input" 
-              value={category} 
-              onChange={e => setCategory(e.target.value)}
-              style={{ paddingRight: '2rem' }}
-            >
+            <select className="cms-input" value={category} onChange={e => setCategory(e.target.value)}>
                <option value="Tech">Technology (Tech)</option>
                <option value="DevLife">Developer Life</option>
                <option value="Tips">Thủ thuật (Tips & Tricks)</option>
@@ -230,32 +205,20 @@ const BlogCMS = () => {
 
           <div className="cms-sidebar-section">
             <label>TÓM TẮT (EXCERPT - SEO)</label>
-            <textarea 
-              className="cms-input cms-textarea" 
-              value={excerpt} 
-              onChange={e => setExcerpt(e.target.value)} 
-              placeholder="Mô tả ngắn gọn nội dung bài viết để hiển thị trên thẻ bài và máy chủ tìm kiếm..." 
-            />
+            <textarea className="cms-input cms-textarea" value={excerpt} onChange={e => setExcerpt(e.target.value)} placeholder="Mô tả SEO..." />
           </div>
           
           <div className="cms-sidebar-section" style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
-             <label>TRẠNG THÁI BÀI VIẾT</label>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: published ? '#10b981' : '#f59e0b', fontWeight: 'bold', fontSize: '0.9rem' }}>
-               <div style={{ width: 10, height: 10, borderRadius: '50%', background: published ? '#10b981' : '#f59e0b', boxShadow: `0 0 10px ${published ? '#10b981' : '#f59e0b'}` }} />
-               {published ? 'ĐÃ CÔNG KHAI' : 'BẢN NHÁP ẨN'}
+             <label>TRẠNG THÁI</label>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: published ? '#10b981' : '#f59e0b', fontWeight: 'bold' }}>
+               <div style={{ width: 10, height: 10, borderRadius: '50%', background: published ? '#10b981' : '#f59e0b' }} />
+               {published ? 'ĐÃ CÔNG KHAI' : 'BẢN NHÁP'}
              </div>
           </div>
         </aside>
 
-        {/* EDITOR AREA */}
         <div className="cms-editor-pane">
-          <textarea 
-            className="cms-markdown-input"
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            placeholder="# Bắt đầu viết nội dung tại đây...&#10;&#10;Hỗ trợ Markdown. Bạn có thể sử dụng h2 (##), danh sách, blockquote, code blocks và chèn ảnh ![alt](link)"
-          />
-          
+          <textarea className="cms-markdown-input" value={content} onChange={e => setContent(e.target.value)} placeholder="# Bắt đầu viết..." />
           <div className="cms-preview-pane">
              <div className="cms-preview-content">
                {content ? (
@@ -265,18 +228,11 @@ const BlogCMS = () => {
                      code({node, inline, className, children, ...props}) {
                        const match = /language-(\w+)/.exec(className || '')
                        return !inline && match ? (
-                         <SyntaxHighlighter
-                           style={vscDarkPlus}
-                           language={match[1]}
-                           PreTag="div"
-                           {...props}
-                         >
+                         <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div" {...props}>
                            {String(children).replace(/\n$/, '')}
                          </SyntaxHighlighter>
                        ) : (
-                         <code className={className} {...props}>
-                           {children}
-                         </code>
+                         <code className={className} {...props}>{children}</code>
                        )
                      }
                    }}
@@ -284,22 +240,16 @@ const BlogCMS = () => {
                    {content}
                  </ReactMarkdown>
                ) : (
-                 <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '4rem', opacity: 0.5 }}>
-                   <ImageIcon size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                   <h2>BẢN XEM TRƯỚC (PREVIEW)</h2>
-                   <p>Nội dung bạn gõ bên trái sẽ được Render lập tức tại đây.</p>
+                 <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '4rem' }}>
+                   <h2>BẢN XEM TRƯỚC</h2>
                  </div>
                )}
              </div>
           </div>
-          
-          {/* Status Toast Overlay */}
           <div className={`cms-floating-status ${statusMsg ? 'show' : ''}`}>
-             <CheckCircle size={16} />
              <span>{statusMsg}</span>
           </div>
         </div>
-
       </div>
     </div>
   );
