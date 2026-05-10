@@ -364,7 +364,6 @@ const QuizPlayer = () => {
                                         {checkingAttempts ? 'ĐANG KIỂM TRA...' : 'BẮT ĐẦU LÀM BÀI'}
                                     </button>
                                 )}
-                                <p className="attempts-hint">Hệ thống sẽ ghi nhận thông tin và lượt thi của ngài.</p>
                             </div>
                         </motion.div>
                     )}
