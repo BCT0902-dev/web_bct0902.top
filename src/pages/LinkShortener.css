@@ -6,6 +6,12 @@
     background: radial-gradient(circle at center, #0a0a0c 0%, #050505 100%);
 }
 
+@media (max-width: 768px) {
+    .shortener-page-wrapper {
+        padding: 6rem 1rem 2rem;
+    }
+}
+
 .shortener-layout {
     display: grid;
     grid-template-columns: 1fr 400px;
@@ -13,6 +19,16 @@
     max-width: 1400px !important;
     position: relative;
     z-index: 1;
+}
+
+@media (max-width: 1100px) {
+    .shortener-layout {
+        grid-template-columns: 1fr;
+    }
+    .management-panel {
+        height: auto !important;
+        max-height: 600px;
+    }
 }
 
 /* Form Section */
@@ -32,6 +48,18 @@
     letter-spacing: 2px;
     margin-bottom: 0.5rem;
     font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .card-header h1 {
+        font-size: 1.8rem;
+    }
+    .subtitle {
+        font-size: 0.7rem;
+    }
+    .shortener-card {
+        padding: 2rem 1.5rem;
+    }
 }
 
 .subtitle {
@@ -104,6 +132,24 @@
     overflow: hidden;
     transition: all 0.3s ease;
     height: 60px;
+}
+
+@media (max-width: 768px) {
+    .input-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .shorten-btn {
+        width: 100%;
+        min-width: unset;
+    }
+    .slug-input-wrapper {
+        height: 55px;
+        padding: 0 1rem;
+    }
+    .domain-prefix {
+        font-size: 0.85rem;
+    }
 }
 
 .slug-input-wrapper:focus-within {

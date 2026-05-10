@@ -192,6 +192,12 @@ const QuizPlayer = () => {
             <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" />
             <div className="quiz-overlay-light"></div>
             
+            {/* Mobile Back Button */}
+            <div className="mobile-back-header">
+                <button onClick={() => navigate('/')} className="btn-back-minimal">
+                    <ChevronLeft size={20} /> QUAY LẠI
+                </button>
+            </div>
             {loading ? (
                 <div className="quiz-loader-visible">
                     <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }}>
@@ -394,6 +400,41 @@ const QuizPlayer = () => {
                     position: relative;
                     font-family: 'Outfit', sans-serif;
                 }
+                .mobile-back-header { display: none; }
+                
+                @media (max-width: 768px) {
+                    .quiz-player-container.light-mode {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        z-index: 10000;
+                        padding: 5rem 1rem 2rem;
+                        overflow-y: auto;
+                    }
+                    .mobile-back-header {
+                        display: flex;
+                        position: fixed;
+                        top: 1rem;
+                        left: 1rem;
+                        z-index: 10001;
+                    }
+                    .btn-back-minimal {
+                        background: rgba(255,255,255,0.8);
+                        backdrop-filter: blur(10px);
+                        border: 1px solid #e5e7eb;
+                        padding: 0.6rem 1rem;
+                        border-radius: 12px;
+                        font-weight: 800;
+                        font-size: 0.75rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.4rem;
+                        color: #4b5563;
+                    }
+                }
+
                 .quiz-overlay-light {
                     position: absolute;
                     inset: 0;
@@ -414,6 +455,9 @@ const QuizPlayer = () => {
                     padding: 3rem;
                     text-align: center;
                 }
+                @media (max-width: 768px) {
+                    .quiz-lobby { padding: 2rem 1.5rem; border-radius: 20px; }
+                }
                 .title-light { 
                     font-size: 2.8rem; 
                     font-weight: 800; 
@@ -422,7 +466,14 @@ const QuizPlayer = () => {
                     line-height: 1.2;
                     letter-spacing: -0.5px;
                 }
+                @media (max-width: 768px) {
+                    .title-light { font-size: 1.8rem; margin: 1rem 0; }
+                }
                 .description-light { color: #4b5563; line-height: 1.6; margin-bottom: 2rem; font-size: 1.1rem; }
+                @media (max-width: 768px) {
+                    .description-light { font-size: 0.95rem; margin-bottom: 1.5rem; }
+                    .lobby-info-grid-light { gap: 1.5rem !important; }
+                }
                 .lobby-info-grid-light { display: flex; justify-content: center; gap: 2.5rem; margin-bottom: 3rem; }
                 .info-item-light { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; color: #1f2937; }
                 .info-item-light strong { font-size: 1.2rem; }
@@ -437,6 +488,11 @@ const QuizPlayer = () => {
                 .quiz-play-area-light { width: 100%; max-width: 1300px; z-index: 2; display: flex; flex-direction: column; gap: 1.5rem; transition: all 0.3s; }
                 .quiz-play-area-light.fullscreen-play { max-width: 96vw; }
                 .play-header-light { padding: 1.5rem 2.5rem; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; }
+                @media (max-width: 768px) {
+                    .play-header-light { padding: 1rem; flex-direction: column; gap: 1rem; }
+                    .progress-bar-light { width: 100% !important; }
+                    .header-right { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+                }
                 .header-left h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
                 .progress-bar-light { width: 400px; height: 10px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
                 .progress-fill-light { height: 100%; background: #2563eb; transition: width 0.4s ease; }
@@ -447,6 +503,11 @@ const QuizPlayer = () => {
                 .btn-submit-light:hover { background: #b91c1c; }
 
                 .play-content-light { display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; }
+                @media (max-width: 1024px) {
+                    .play-content-light { grid-template-columns: 1fr; }
+                    .question-navigation-light { order: 2; }
+                    .question-display-light { order: 1; padding: 2rem !important; min-height: auto !important; }
+                }
                 .question-navigation-light { padding: 2rem; }
                 .question-navigation-light h4 { font-size: 0.9rem; font-weight: 800; color: #6b7280; letter-spacing: 1px; margin-bottom: 1.5rem; }
                 .nav-grid-light { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; }
@@ -457,6 +518,11 @@ const QuizPlayer = () => {
                 .question-display-light { padding: 4rem; min-height: 600px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 32px; }
                 .q-number-light { color: #2563eb; font-weight: 800; letter-spacing: 1.5px; font-size: 0.9rem; }
                 .q-text-light { font-size: 2.2rem; color: #111827; margin: 1.5rem 0 3.5rem; line-height: 1.3; font-weight: 700; }
+                @media (max-width: 768px) {
+                    .q-text-light { font-size: 1.4rem; margin: 1rem 0 2rem; }
+                    .options-grid-light { grid-template-columns: 1fr !important; gap: 1rem !important; }
+                    .option-card-light { padding: 1.2rem !important; border-radius: 16px !important; }
+                }
                 .options-grid-light { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
                 .option-card-light { background: #f9fafb; border: 2px solid #e5e7eb; padding: 1.8rem; border-radius: 20px; text-align: left; cursor: pointer; display: flex; gap: 1.2rem; align-items: center; transition: all 0.2s; font-family: inherit; }
                 .option-card-light:hover { background: #f3f4f6; border-color: #d1d5db; }
@@ -466,11 +532,21 @@ const QuizPlayer = () => {
                 .opt-text-light { font-size: 1.2rem; font-weight: 600; color: #374151; }
 
                 .q-actions-light { display: flex; justify-content: space-between; margin-top: 4rem; }
+                @media (max-width: 768px) {
+                    .q-actions-light { margin-top: 2rem; }
+                    .btn-nav-light { padding: 0.8rem 1.2rem !important; font-size: 0.8rem; }
+                }
                 .btn-nav-light { display: flex; align-items: center; gap: 0.6rem; padding: 1.2rem 2.5rem; border: 2px solid #e5e7eb; border-radius: 16px; font-weight: 800; cursor: pointer; background: #fff; transition: all 0.2s; font-family: inherit; }
                 .btn-nav-light:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; }
                 .btn-finish-light { background: #2563eb; color: #fff; padding: 1.2rem 4rem; border-radius: 16px; font-weight: 800; border: none; cursor: pointer; transition: all 0.3s; font-size: 1.1rem; }
 
                 .quiz-result-light { max-width: 650px; width: 100%; padding: 5rem 3rem; text-align: center; }
+                @media (max-width: 768px) {
+                    .quiz-result-light { padding: 3rem 1.5rem; }
+                    .score-light { font-size: 4rem !important; }
+                    .result-stats-light { gap: 1rem !important; }
+                    .result-actions-light { flex-direction: column; }
+                }
                 .score-light { font-size: 6rem; font-weight: 900; color: #2563eb; margin: 1.5rem 0; letter-spacing: -2px; }
                 .result-stats-light { display: flex; justify-content: center; gap: 2.5rem; margin-bottom: 2.5rem; }
                 .stat-box-light { padding: 1.2rem 2.5rem; border-radius: 18px; display: flex; flex-direction: column; min-width: 140px; }
@@ -488,6 +564,10 @@ const QuizPlayer = () => {
 
                 .public-leaderboard-container { width: 100%; max-width: 1000px; z-index: 2; display: flex; flex-direction: column; gap: 2rem; }
                 .top-podium-light { display: flex; justify-content: center; align-items: flex-end; gap: 2rem; margin-bottom: 2rem; padding: 2rem; }
+                @media (max-width: 768px) {
+                    .top-podium-light { flex-direction: column; align-items: center; gap: 3rem; }
+                    .podium-item-light { width: 100% !important; max-width: 280px; }
+                }
                 .podium-item-light { display: flex; flex-direction: column; align-items: center; position: relative; padding: 2rem; background: #fff; border: 2px solid #e5e7eb; border-radius: 24px; width: 220px; }
                 .rank-1 { order: 2; transform: scale(1.15); border-color: #fbbf24; background: #fffbeb; }
                 .rank-badge-light { position: absolute; top: -15px; width: 40px; height: 40px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: 900; display: flex; align-items: center; justify-content: center; }

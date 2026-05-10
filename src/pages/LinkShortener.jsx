@@ -442,9 +442,9 @@ const LinkShortener = () => {
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="edit-popup glass-panel shadow-glow"
+              className="edit-popup glass-panel shadow-glow shortener-result-modal"
               onClick={(e) => e.stopPropagation()}
-              style={{ width: '100%', maxWidth: '600px', padding: '2.5rem' }}
+              style={{ width: '100%', maxWidth: '600px' }}
             >
               <button className="close-popup" onClick={() => setShortUrl('')}><X size={20} /></button>
               <h3 style={{ fontFamily: 'var(--font-tech)', marginBottom: '1.5rem', color: 'var(--accent-main)', textAlign: 'center' }}>
