@@ -107,27 +107,6 @@ const QuizPlayer = () => {
 
     const handleStart = () => {
         if (quiz.config.hasLeaderboard) {
-            const missing = quiz.config.participantFields.find(f => f.required && !participantData[f.key]?.trim());
-            if (missing) {
-                alert(`Vui lòng nhập ${missing.label} để bắt đầu!`);
-                return;
-            }
-        }
-
-        const all = [...quiz.questions];
-        const shuffled = all.sort(() => 0.5 - Math.random()).slice(0, quiz.config.questionsCount);
-        
-        const newAttemptCount = attempts + 1;
-        setAttempts(newAttemptCount);
-        localStorage.setItem(`quiz_attempts_${slug}`, newAttemptCount.toString());
-
-        setGameQuestions(shuffled);
-        setTimeLeft(quiz.config.timeLimit * 60);
-        setGameState('playing');
-    };
-
-    const handleStart = () => {
-        if (quiz.config.hasLeaderboard) {
             const fields = quiz.config.participantFields || [];
             const missing = fields.find(f => f.required && !participantData[f.key]?.trim());
             if (missing) {
@@ -204,6 +183,7 @@ const QuizPlayer = () => {
     };
 
     const isOutOfAttempts = attempts >= (quiz.config.retryLimit || 1);
+    const isExpiredLocally = isExpired;
 
     return (
         <div className="quiz-player-container light-mode" style={{ 
@@ -319,7 +299,7 @@ const QuizPlayer = () => {
                             )}
 
                             <div className="lobby-actions">
-                                {isExpired ? (
+                                {isExpiredLocally ? (
                                     <div className="expiry-notice-light"><AlertCircle size={20} /> Bài thi đã đóng (Hết hạn)!</div>
                                 ) : isOutOfAttempts ? (
                                     <div className="expiry-notice-light"><AlertCircle size={20} /> Bạn đã hết lượt làm bài!</div>
@@ -506,23 +486,6 @@ const QuizPlayer = () => {
                 .attempts-hint { margin-top: 1rem; color: #9ca3af; font-size: 0.85rem; font-weight: 600; }
                 .expiry-notice-light { display: flex; align-items: center; justify-content: center; gap: 0.6rem; color: #dc2626; background: #fee2e2; padding: 1rem; border-radius: 12px; font-weight: 700; margin-bottom: 1rem; }
 
-                .quiz-loader-visible {
-                    position: relative;
-                    z-index: 2;
-                    text-align: center;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 1.5rem;
-                    color: #1f2937;
-                    font-weight: 700;
-                    font-size: 1.1rem;
-                }
-            `}</style>
-        </div>
-    );
-};
-
                 .public-leaderboard-container { width: 100%; max-width: 1000px; z-index: 2; display: flex; flex-direction: column; gap: 2rem; }
                 .top-podium-light { display: flex; justify-content: center; align-items: flex-end; gap: 2rem; margin-bottom: 2rem; padding: 2rem; }
                 .podium-item-light { display: flex; flex-direction: column; align-items: center; position: relative; padding: 2rem; background: #fff; border: 2px solid #e5e7eb; border-radius: 24px; width: 220px; }
@@ -544,9 +507,10 @@ const QuizPlayer = () => {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 1rem;
+                    gap: 1.5rem;
                     color: #1f2937;
-                    font-weight: 600;
+                    font-weight: 700;
+                    font-size: 1.1rem;
                 }
             `}</style>
         </div>
