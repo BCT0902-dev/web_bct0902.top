@@ -1067,16 +1067,14 @@ const QuizMaker = () => {
                                     
                                     <div className="action-divider" style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.1)', margin: '0 5px' }}></div>
 
-                                    {res.userAnswers && (
-                                      <button 
-                                        onClick={() => { setSelectedResult(res); setShowAdminReview(true); }}
-                                        className="btn-icon view-details" 
-                                        title="Xem chi tiết bài làm"
-                                        style={{ padding: '6px', background: 'rgba(37, 99, 235, 0.2)', color: '#3b82f6', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-                                      >
-                                         <FileText size={16} />
-                                      </button>
-                                    )}
+                                    <button 
+                                      onClick={() => { setSelectedResult(res); setShowAdminReview(true); }}
+                                      className="btn-icon view-details" 
+                                      title="Xem chi tiết bài làm"
+                                      style={{ padding: '6px', background: 'rgba(37, 99, 235, 0.2)', color: '#3b82f6', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                                    >
+                                       <FileText size={16} />
+                                    </button>
 
                                     <button 
                                       onClick={() => handleResetAttempt(activeQuizSlug, res.userName, res.participantData)} 
