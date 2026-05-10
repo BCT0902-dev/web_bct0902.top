@@ -5,7 +5,7 @@ import {
   Activity, Save, LogOut, ChevronRight, Plus, Trash2, Edit, 
   ExternalLink, CheckCircle, Clock, Eye, TrendingUp, BarChart3,
   MessageSquare, Image as ImageIcon, Upload, Key, Brain, Zap,
-  X, Unlock, FileText, Crop, Search, QrCode, Filter
+  X, Unlock, FileText, Crop, Search, QrCode, Filter, Trophy
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase';
