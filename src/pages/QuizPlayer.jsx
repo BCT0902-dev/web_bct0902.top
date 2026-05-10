@@ -126,6 +126,34 @@ const QuizPlayer = () => {
         setGameState('playing');
     };
 
+    const handleStart = () => {
+        if (quiz.config.hasLeaderboard) {
+            const fields = quiz.config.participantFields || [];
+            const missing = fields.find(f => f.required && !participantData[f.key]?.trim());
+            if (missing) {
+                alert(`Vui lòng nhập ${missing.label} để bắt đầu!`);
+                return;
+            }
+        }
+
+        const all = [...quiz.questions];
+        if (all.length === 0) {
+            alert('Bài thi này chưa có câu hỏi!');
+            return;
+        }
+
+        const questionsCount = Math.min(quiz.config.questionsCount || all.length, all.length);
+        const shuffled = all.sort(() => 0.5 - Math.random()).slice(0, questionsCount);
+        
+        const newAttemptCount = attempts + 1;
+        setAttempts(newAttemptCount);
+        localStorage.setItem(`quiz_attempts_${slug}`, newAttemptCount.toString());
+
+        setGameQuestions(shuffled);
+        setTimeLeft(quiz.config.timeLimit * 60);
+        setGameState('playing');
+    };
+
     const handleSelect = (questionId, letter) => {
         setUserAnswers(prev => ({ ...prev, [questionId]: letter }));
     };
@@ -141,11 +169,11 @@ const QuizPlayer = () => {
             }
         });
 
-        const score = ((correctCount / gameQuestions.length) * 10).toFixed(2);
+        const score = ((correctCount / (gameQuestions.length || 1)) * 10).toFixed(2);
         const resultData = {
             quizSlug: slug,
             quizTitle: quiz.config.title,
-            userName: participantData.userName || 'Thí sinh',
+            userName: participantData.userName || (participantData[Object.keys(participantData)[0]]) || 'Thí sinh',
             participantData: participantData,
             score: parseFloat(score),
             correctCount,
@@ -175,10 +203,13 @@ const QuizPlayer = () => {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
+    const isOutOfAttempts = attempts >= (quiz.config.retryLimit || 1);
+
     return (
         <div className="quiz-player-container light-mode" style={{ 
             backgroundImage: (quiz && quiz.config.backgroundUrl) ? `url(${quiz.config.backgroundUrl})` : 'none' 
         }}>
+            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" />
             <div className="quiz-overlay-light"></div>
             
             {loading ? (
@@ -203,7 +234,7 @@ const QuizPlayer = () => {
             ) : (
                 <AnimatePresence mode="wait">
                     {quiz.status === 'paused' && (
-                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="quiz-lobby glass-panel-light">
+                        <motion.div key="paused" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="quiz-lobby glass-panel-light">
                             <AlertCircle size={64} color="#f59e0b" />
                             <h1>BÀI THI ĐANG TẠM DỪNG</h1>
                             <p className="description-light">Hệ thống đang tạm dừng để chỉnh sửa hoặc cập nhật. Vui lòng quay lại sau.</p>
@@ -214,7 +245,7 @@ const QuizPlayer = () => {
                     )}
 
                     {quiz.status === 'ended' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="public-leaderboard-container">
+                        <motion.div key="ended" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="public-leaderboard-container">
                             <div className="leaderboard-intro glass-panel-light">
                                 <Trophy size={64} color="#f59e0b" />
                                 <h1 className="text-highlight">KẾT QUẢ CHUNG CUỘC</h1>
@@ -236,7 +267,7 @@ const QuizPlayer = () => {
                                                 className={`podium-item-light rank-${idx + 1}`}
                                             >
                                                 <div className="rank-badge-light">{idx + 1}</div>
-                                                <div className="podium-avatar-light">{res.userName.charAt(0).toUpperCase()}</div>
+                                                <div className="podium-avatar-light">{(res.userName || 'T').charAt(0).toUpperCase()}</div>
                                                 <div className="podium-name-light">{res.userName}</div>
                                                 <div className="podium-score-light">{res.score}</div>
                                             </motion.div>
@@ -290,12 +321,12 @@ const QuizPlayer = () => {
                             <div className="lobby-actions">
                                 {isExpired ? (
                                     <div className="expiry-notice-light"><AlertCircle size={20} /> Bài thi đã đóng (Hết hạn)!</div>
-                                ) : (attempts >= (quiz.config.retryLimit || 1) && quiz.config.allowRetry) ? (
+                                ) : isOutOfAttempts ? (
                                     <div className="expiry-notice-light"><AlertCircle size={20} /> Bạn đã hết lượt làm bài!</div>
                                 ) : (
                                     <button onClick={handleStart} className="btn-start-light shadow-standard">BẮT ĐẦU LÀM BÀI</button>
                                 )}
-                                {attempts > 0 && <p className="attempts-hint">Số lần đã làm: {attempts} / {quiz.config.retryLimit || 1}</p>}
+                                <p className="attempts-hint">Số lần đã làm: {attempts} / {quiz.config.retryLimit || 1}</p>
                             </div>
                         </motion.div>
                     )}
@@ -305,7 +336,7 @@ const QuizPlayer = () => {
                             <header className="play-header-light glass-panel-light">
                                 <div className="header-left">
                                     <h3>{quiz.config.title}</h3>
-                                    <div className="progress-bar-light"><div className="progress-fill-light" style={{ width: `${((Object.keys(userAnswers).length) / gameQuestions.length) * 100}%` }}></div></div>
+                                    <div className="progress-bar-light"><div className="progress-fill-light" style={{ width: `${((Object.keys(userAnswers).length) / (gameQuestions.length || 1)) * 100}%` }}></div></div>
                                 </div>
                                 <div className="header-right">
                                     <div className={`timer-light ${timeLeft < 60 ? 'urgent' : ''}`}><Timer size={24} /><span>{formatTime(timeLeft)}</span></div>
@@ -361,7 +392,7 @@ const QuizPlayer = () => {
                             </div>
                             <p className="congrats-light">Thí sinh <strong>{finalResult.userName}</strong> đã hoàn thành bài kiểm tra!</p>
                             <div className="result-actions-light">
-                                {attempts < (quiz.config.retryLimit || 1) ? (
+                                {!isOutOfAttempts ? (
                                     <button onClick={() => window.location.reload()} className="btn-secondary-light">THI LẠI ({quiz.config.retryLimit - attempts})</button>
                                 ) : <span className="no-retry-badge-light">HẾT LƯỢT THI LẠI</span>}
                                 <button onClick={() => navigate('/')} className="btn-primary-light">TRANG CHỦ</button>
@@ -381,6 +412,7 @@ const QuizPlayer = () => {
                     align-items: flex-start;
                     padding: 6rem 1rem 4rem;
                     position: relative;
+                    font-family: 'Outfit', sans-serif;
                 }
                 .quiz-overlay-light {
                     position: absolute;
@@ -392,67 +424,104 @@ const QuizPlayer = () => {
                     background: #fff;
                     border: 1px solid #e5e7eb;
                     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-                    border-radius: 16px;
+                    border-radius: 24px;
                     position: relative;
                     z-index: 2;
                 }
                 .quiz-lobby {
-                    max-width: 600px;
+                    max-width: 650px;
                     width: 100%;
-                    padding: 2.5rem;
+                    padding: 3rem;
                     text-align: center;
                 }
-                .title-light { font-size: 2.2rem; font-weight: 800; color: #111827; margin: 1.5rem 0 1rem; }
-                .description-light { color: #4b5563; line-height: 1.6; margin-bottom: 2rem; }
-                .lobby-info-grid-light { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2.5rem; }
-                .info-item-light { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: #1f2937; }
-                .dynamic-form-light { text-align: left; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+                .title-light { 
+                    font-size: 2.8rem; 
+                    font-weight: 800; 
+                    color: #111827; 
+                    margin: 1.5rem 0 1.5rem; 
+                    line-height: 1.2;
+                    letter-spacing: -0.5px;
+                }
+                .description-light { color: #4b5563; line-height: 1.6; margin-bottom: 2rem; font-size: 1.1rem; }
+                .lobby-info-grid-light { display: flex; justify-content: center; gap: 2.5rem; margin-bottom: 3rem; }
+                .info-item-light { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; color: #1f2937; }
+                .info-item-light strong { font-size: 1.2rem; }
+                .dynamic-form-light { text-align: left; margin-bottom: 2.5rem; display: flex; flex-direction: column; gap: 1.2rem; }
                 .name-input-group-light { text-align: left; }
-                .name-input-group-light label { font-size: 0.85rem; font-weight: 700; color: #374151; margin-bottom: 0.5rem; display: block; }
-                .name-input-group-light input { width: 100%; padding: 1rem; border-radius: 12px; border: 2px solid #e5e7eb; font-size: 1.1rem; outline: none; }
-                .name-input-group-light input:focus { border-color: #2563eb; }
-                .btn-start-light { width: 100%; background: #2563eb; color: #fff; padding: 1.2rem; border-radius: 12px; font-weight: 800; border: none; font-size: 1.2rem; cursor: pointer; }
+                .name-input-group-light label { font-size: 0.8rem; font-weight: 800; color: #374151; margin-bottom: 0.6rem; display: block; letter-spacing: 1px; }
+                .name-input-group-light input { width: 100%; padding: 1.2rem; border-radius: 14px; border: 2px solid #e5e7eb; font-size: 1.1rem; outline: none; transition: all 0.2s; font-family: inherit; }
+                .name-input-group-light input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+                .btn-start-light { width: 100%; background: #2563eb; color: #fff; padding: 1.4rem; border-radius: 16px; font-weight: 800; border: none; font-size: 1.3rem; cursor: pointer; transition: all 0.3s; }
+                .btn-start-light:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
                 
-                .quiz-play-area-light { width: 100%; max-width: 1200px; z-index: 2; display: flex; flex-direction: column; gap: 1.5rem; transition: all 0.3s; }
-                .quiz-play-area-light.fullscreen-play { max-width: 98vw; }
-                .play-header-light { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-                .progress-bar-light { width: 300px; height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; margin-top: 0.5rem; }
-                .progress-fill-light { height: 100%; background: #2563eb; }
-                .timer-light { display: flex; align-items: center; gap: 0.8rem; font-size: 1.8rem; font-weight: 900; color: #2563eb; }
+                .quiz-play-area-light { width: 100%; max-width: 1300px; z-index: 2; display: flex; flex-direction: column; gap: 1.5rem; transition: all 0.3s; }
+                .quiz-play-area-light.fullscreen-play { max-width: 96vw; }
+                .play-header-light { padding: 1.5rem 2.5rem; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; }
+                .header-left h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+                .progress-bar-light { width: 400px; height: 10px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
+                .progress-fill-light { height: 100%; background: #2563eb; transition: width 0.4s ease; }
+                .timer-light { display: flex; align-items: center; gap: 0.8rem; font-size: 2rem; font-weight: 800; color: #2563eb; font-variant-numeric: tabular-nums; }
                 .timer-light.urgent { color: #dc2626; animation: pulse 1s infinite; }
                 @keyframes pulse { 50% { opacity: 0.6; } }
-                .btn-submit-light { background: #dc2626; color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: 800; border: none; cursor: pointer; }
+                .btn-submit-light { background: #dc2626; color: #fff; padding: 0.8rem 2.5rem; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; transition: all 0.2s; }
+                .btn-submit-light:hover { background: #b91c1c; }
 
-                .play-content-light { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; }
-                .nav-grid-light { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem; margin-top: 1rem; }
-                .nav-item-light { width: 100%; aspect-ratio: 1; border-radius: 8px; border: 2px solid #e5e7eb; background: #fff; font-weight: 700; cursor: pointer; }
+                .play-content-light { display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; }
+                .question-navigation-light { padding: 2rem; }
+                .question-navigation-light h4 { font-size: 0.9rem; font-weight: 800; color: #6b7280; letter-spacing: 1px; margin-bottom: 1.5rem; }
+                .nav-grid-light { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; }
+                .nav-item-light { width: 100%; aspect-ratio: 1; border-radius: 12px; border: 2px solid #e5e7eb; background: #fff; font-weight: 800; cursor: pointer; transition: all 0.2s; font-family: inherit; }
                 .nav-item-light.active { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
                 .nav-item-light.answered { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-                .question-display-light { padding: 3rem; min-height: 500px; display: flex; flex-direction: column; justify-content: space-between; }
-                .q-number-light { color: #2563eb; font-weight: 800; letter-spacing: 1px; }
-                .q-text-light { font-size: 2rem; color: #111827; margin: 1.5rem 0 3rem; line-height: 1.4; }
+                .question-display-light { padding: 4rem; min-height: 600px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 32px; }
+                .q-number-light { color: #2563eb; font-weight: 800; letter-spacing: 1.5px; font-size: 0.9rem; }
+                .q-text-light { font-size: 2.2rem; color: #111827; margin: 1.5rem 0 3.5rem; line-height: 1.3; font-weight: 700; }
                 .options-grid-light { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-                .option-card-light { background: #f9fafb; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 12px; text-align: left; cursor: pointer; display: flex; gap: 1rem; align-items: center; }
-                .option-card-light:hover { background: #f3f4f6; }
+                .option-card-light { background: #f9fafb; border: 2px solid #e5e7eb; padding: 1.8rem; border-radius: 20px; text-align: left; cursor: pointer; display: flex; gap: 1.2rem; align-items: center; transition: all 0.2s; font-family: inherit; }
+                .option-card-light:hover { background: #f3f4f6; border-color: #d1d5db; }
                 .option-card-light.selected { border-color: #2563eb; background: #eff6ff; }
-                .opt-letter-light { width: 40px; height: 40px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-                .option-card-light.selected .opt-letter-light { background: #2563eb; color: #fff; }
-                .opt-text-light { font-size: 1.1rem; font-weight: 500; }
+                .opt-letter-light { width: 45px; height: 45px; background: #fff; border: 2px solid #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2rem; }
+                .option-card-light.selected .opt-letter-light { background: #2563eb; color: #fff; border-color: #2563eb; }
+                .opt-text-light { font-size: 1.2rem; font-weight: 600; color: #374151; }
 
                 .q-actions-light { display: flex; justify-content: space-between; margin-top: 4rem; }
-                .btn-nav-light { display: flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; border: 2px solid #e5e7eb; border-radius: 12px; font-weight: 700; cursor: pointer; background: #fff; }
-                .btn-finish-light { background: #2563eb; color: #fff; padding: 1rem 3rem; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; }
+                .btn-nav-light { display: flex; align-items: center; gap: 0.6rem; padding: 1.2rem 2.5rem; border: 2px solid #e5e7eb; border-radius: 16px; font-weight: 800; cursor: pointer; background: #fff; transition: all 0.2s; font-family: inherit; }
+                .btn-nav-light:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; }
+                .btn-finish-light { background: #2563eb; color: #fff; padding: 1.2rem 4rem; border-radius: 16px; font-weight: 800; border: none; cursor: pointer; transition: all 0.3s; font-size: 1.1rem; }
 
-                .quiz-result-light { max-width: 600px; width: 100%; padding: 4rem; text-align: center; }
-                .score-light { font-size: 5rem; font-weight: 900; color: #2563eb; margin: 1.5rem 0; }
-                .result-stats-light { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; }
-                .stat-box-light { padding: 1rem 2rem; border-radius: 12px; display: flex; flex-direction: column; }
+                .quiz-result-light { max-width: 650px; width: 100%; padding: 5rem 3rem; text-align: center; }
+                .score-light { font-size: 6rem; font-weight: 900; color: #2563eb; margin: 1.5rem 0; letter-spacing: -2px; }
+                .result-stats-light { display: flex; justify-content: center; gap: 2.5rem; margin-bottom: 2.5rem; }
+                .stat-box-light { padding: 1.2rem 2.5rem; border-radius: 18px; display: flex; flex-direction: column; min-width: 140px; }
+                .stat-box-light strong { font-size: 1.8rem; }
+                .stat-box-light span { font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; }
                 .stat-box-light.success { background: #dcfce7; color: #166534; }
                 .stat-box-light.error { background: #fee2e2; color: #991b1b; }
-                .result-actions-light { display: flex; gap: 1rem; justify-content: center; margin-top: 3rem; }
-                .btn-primary-light { background: #2563eb; color: #fff; padding: 1rem 2.5rem; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; }
-                .btn-secondary-light { background: #fff; color: #374151; padding: 1rem 2.5rem; border-radius: 12px; border: 2px solid #e5e7eb; font-weight: 800; cursor: pointer; }
+                .congrats-light { font-size: 1.1rem; color: #4b5563; }
+                .result-actions-light { display: flex; gap: 1.2rem; justify-content: center; margin-top: 3.5rem; }
+                .btn-primary-light { background: #2563eb; color: #fff; padding: 1.2rem 3rem; border-radius: 16px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+                .btn-secondary-light { background: #fff; color: #374151; padding: 1.2rem 3rem; border-radius: 16px; border: 2px solid #e5e7eb; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+
+                .attempts-hint { margin-top: 1rem; color: #9ca3af; font-size: 0.85rem; font-weight: 600; }
+                .expiry-notice-light { display: flex; align-items: center; justify-content: center; gap: 0.6rem; color: #dc2626; background: #fee2e2; padding: 1rem; border-radius: 12px; font-weight: 700; margin-bottom: 1rem; }
+
+                .quiz-loader-visible {
+                    position: relative;
+                    z-index: 2;
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 1.5rem;
+                    color: #1f2937;
+                    font-weight: 700;
+                    font-size: 1.1rem;
+                }
+            `}</style>
+        </div>
+    );
+};
 
                 .public-leaderboard-container { width: 100%; max-width: 1000px; z-index: 2; display: flex; flex-direction: column; gap: 2rem; }
                 .top-podium-light { display: flex; justify-content: center; align-items: flex-end; gap: 2rem; margin-bottom: 2rem; padding: 2rem; }
