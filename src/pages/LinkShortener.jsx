@@ -31,6 +31,7 @@ const LinkShortener = () => {
   const [editingLink, setEditingLink] = useState(null);
   const [editForm, setEditForm] = useState({ longUrl: '', slug: '' });
   const [qrModalLink, setQrModalLink] = useState(null);
+  const [activeTab, setActiveTab] = useState('shorten'); // mobile: 'shorten' | 'manage'
 
   // Initial Popup Logic
   useEffect(() => {
@@ -289,32 +290,46 @@ const LinkShortener = () => {
 
   return (
     <div className="shortener-page-wrapper" style={{ fontFamily: 'var(--font-tech)' }}>
-      {/* MOBILE TOP HEADER - ONLY VISIBLE ON < 768px */}
+      {/* MOBILE TOP HEADER */}
       <div className="iris-mobile-header">
         <div className="m-header-left">
           <Menu size={24} />
         </div>
-        <div className="m-logo">BCT0902</div>
+        <div className="m-logo" style={{ fontFamily: 'var(--font-tech)' }}>BCT0902</div>
         <div className="m-header-right">
-          <div className="m-lang">
-            <Globe size={16} />
-            <span>VI</span>
-          </div>
           <div className="m-admin-pill">
             <img 
                src={currentUser?.photoURL || `https://api.dicebear.com/7.x/shapes/svg?seed=${currentUser?.email || 'default'}`} 
                alt="avatar" 
             />
-            <span>BCT_ADMIN</span>
+            <span style={{ fontFamily: 'var(--font-tech)' }}>BCT_ADMIN</span>
           </div>
         </div>
+      </div>
+
+      {/* MOBILE TAB SWITCHER - REDUCES SCROLLING */}
+      <div className="iris-mobile-tabs">
+        <button 
+          className={`m-tab-btn ${activeTab === 'shorten' ? 'active' : ''}`}
+          onClick={() => setActiveTab('shorten')}
+          style={{ fontFamily: 'var(--font-tech)' }}
+        >
+          <Zap size={18} /> RÚT GỌN
+        </button>
+        <button 
+          className={`m-tab-btn ${activeTab === 'manage' ? 'active' : ''}`}
+          onClick={() => setActiveTab('manage')}
+          style={{ fontFamily: 'var(--font-tech)' }}
+        >
+          <ShieldCheck size={18} /> QUẢN LÝ
+        </button>
       </div>
 
       <div className="background-decor"></div>
       
       <div className="shortener-layout container">
         {/* LEFT COLUMN: SHORTEN FORM */}
-        <div className="shortener-main-col">
+        <div className={`shortener-main-col ${activeTab !== 'shorten' ? 'm-hide' : ''}`}>
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -387,7 +402,7 @@ const LinkShortener = () => {
         </div>
 
         {/* RIGHT COLUMN: MANAGEMENT PANEL */}
-        <div className="shortener-side-col">
+        <div className={`shortener-side-col ${activeTab !== 'manage' ? 'm-hide' : ''}`}>
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -395,7 +410,7 @@ const LinkShortener = () => {
           >
             <div className="panel-header">
               <h3 style={{ fontFamily: 'var(--font-tech)', fontWeight: 700 }}><ShieldCheck size={20} /> QUẢN LÝ LIÊN KẾT</h3>
-              {isAdmin && <span className="admin-badge">ADMIN_ACCESS</span>}
+              {isAdmin && <span className="admin-badge" style={{ fontFamily: 'var(--font-tech)' }}>ADMIN_ACCESS</span>}
             </div>
 
             <div className="links-list-container custom-scrollbar">

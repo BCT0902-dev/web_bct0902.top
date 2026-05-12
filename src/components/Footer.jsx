@@ -208,13 +208,13 @@ const Footer = () => {
         </div>
 
         {/* Cột phải - Contact Form */}
-        <div className="glass-panel" style={{ padding: '2rem', borderRadius: '24px' }}>
-          <h3 style={{ marginBottom: '1.5rem', fontFamily: 'var(--font-mono)', fontSize: '1.2rem', color: 'var(--accent-main)' }}>
+        <div className="glass-panel footer-contact-card" style={{ padding: '2rem', borderRadius: '24px' }}>
+          <h3 style={{ marginBottom: '1.5rem', fontFamily: 'var(--font-tech)', fontSize: '1.4rem', color: 'var(--accent-main)', textTransform: 'uppercase' }}>
             {t('footer.form_title')}
           </h3>
           
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="footer-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <input 
                 type="text" 
                 placeholder={t('footer.placeholder_name')}
@@ -227,8 +227,9 @@ const Footer = () => {
                   padding: '1rem', 
                   color: 'var(--text-primary)', 
                   outline: 'none',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.3s ease'
+                  fontFamily: 'var(--font-tech)',
+                  transition: 'all 0.3s ease',
+                  width: '100%'
                 }}
                 onFocus={(e) => e.target.style.borderColor = 'var(--accent-main)'}
                 onBlur={(e) => e.target.style.borderColor = 'var(--bg-glass-border)'}
@@ -246,8 +247,9 @@ const Footer = () => {
                   padding: '1rem', 
                   color: 'var(--text-primary)', 
                   outline: 'none',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.3s ease'
+                  fontFamily: 'var(--font-tech)',
+                  transition: 'all 0.3s ease',
+                  width: '100%'
                 }}
                 onFocus={(e) => e.target.style.borderColor = 'var(--accent-main)'}
                 onBlur={(e) => e.target.style.borderColor = 'var(--bg-glass-border)'}
