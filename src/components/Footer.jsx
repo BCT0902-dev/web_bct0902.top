@@ -303,7 +303,7 @@ const Footer = ({ technicalFont }) => {
         borderTop: '1px solid var(--bg-glass-border)',
         textAlign: 'center'
       }}>
-        <p style={{ 
+        <p className="footer-scroll-up" style={{ 
           color: 'var(--text-secondary)', 
           fontFamily: 'var(--font-mono)',
           fontSize: '0.9rem',

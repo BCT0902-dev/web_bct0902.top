@@ -16,6 +16,7 @@
         margin-bottom: 2.5rem !important;
     }
 
+    /* FIX 1: Subtitle rớt dòng xấu → cho phép wrap tự nhiên, font nhỏ hơn */
     .chronicles-page-header h2 {
         font-size: 1.8rem !important;
         line-height: 1.2 !important;
@@ -24,14 +25,16 @@
     }
 
     .chronicles-page-header p {
-        font-size: 0.85rem !important;
-        margin-top: 0.5rem !important;
+        font-size: 0.8rem !important;
+        margin-top: 0.4rem !important;
         line-height: 1.5 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        padding: 0 0.5rem !important;
     }
 
     /* --- MILESTONE ITEM ---
        Chuyển từ layout trái/phải xen kẽ → full width dọc
-       Thêm khoảng trống bên trái cho đường timeline
     -------------------------------------------------- */
     .chronicles-milestone-item {
         justify-content: flex-start !important;
@@ -64,7 +67,7 @@
         height: 160px !important;
     }
 
-    /* --- NODE KẾT NỐI: Dời sang bên trái cạnh đường timeline --- */
+    /* --- NODE KẾT NỐI: Dời sang bên trái --- */
     .chronicles-node {
         left: -1.25rem !important;
         transform: translateX(-50%) !important;
@@ -76,7 +79,6 @@
         display: none !important;
     }
 
-    /* Đường dọc thẳng bên trái thay cho SVG cong */
     .chronicles-milestone-list {
         position: relative;
         padding-left: 1rem;
@@ -91,5 +93,21 @@
         width: 2px;
         background: linear-gradient(to bottom, var(--accent-main), transparent);
         opacity: 0.3;
+    }
+}
+
+/* ============================================================
+   FOOTER - MOBILE FIX
+   FIX 2: Text bị cắt "..." do whiteSpace:nowrap + overflow:hidden
+   ============================================================ */
+@media (max-width: 768px) {
+    .footer-scroll-up {
+        white-space: normal !important;       /* Cho phép xuống dòng */
+        overflow: visible !important;         /* Không cắt nội dung */
+        text-overflow: unset !important;      /* Xóa dấu "..." */
+        font-size: 0.75rem !important;        /* Nhỏ hơn để vừa màn hình */
+        line-height: 1.5 !important;
+        padding: 0 1rem !important;
+        text-align: center !important;
     }
 }
