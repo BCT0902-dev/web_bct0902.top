@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Layout, ClipboardList, GraduationCap, Users, HelpCircle } from 'lucide-react';
+import { Home, Layout, ClipboardList, GraduationCap, Users, HelpCircle, Link2 } from 'lucide-react';
+
 
 /**
  * MobileBottomNav - Bottom navigation bar for mobile pages
@@ -17,13 +18,15 @@ const MobileBottomNav = () => {
   };
 
   const navItems = [
-    { to: '/',          icon: <Home size={22} />,          label: 'TRANG CHỦ',   isLink: true },
-    { to: '/#about',    icon: <Layout size={22} />,         label: 'GIỚI THIỆU',  isLink: false },
-    { to: '/chronicles',icon: <ClipboardList size={22} />,  label: 'HÀNH TRÌNH',  isLink: true },
-    { to: '/#skills',   icon: <GraduationCap size={22} />,  label: 'KỸ NĂNG',     isLink: false },
-    { to: '/blog',      icon: <Users size={22} />,          label: 'BÀI VIẾT',    isLink: true },
-    { to: '/quiz-maker',icon: <HelpCircle size={22} />,     label: 'QUIZ',        isLink: true },
+    { to: '/',           icon: <Home size={20} />,          label: 'TRANG CHỦ',  isLink: true },
+    { to: '/#about',     icon: <Layout size={20} />,         label: 'GIỚI THIỆU', isLink: false },
+    { to: '/chronicles', icon: <ClipboardList size={20} />,  label: 'HÀNH TRÌNH', isLink: true },
+    { to: '/#skills',    icon: <GraduationCap size={20} />,  label: 'KỸ NĂNG',    isLink: false },
+    { to: '/blog',       icon: <Users size={20} />,          label: 'BÀI VIẾT',   isLink: true },
+    { to: '/shortener',  icon: <Link2 size={20} />,          label: 'RÚT GỌN',    isLink: true },
+    { to: '/quiz-maker', icon: <HelpCircle size={20} />,     label: 'QUIZ',       isLink: true },
   ];
+
 
   return (
     <div className="iris-mobile-nav">
