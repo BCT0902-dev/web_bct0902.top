@@ -165,7 +165,7 @@ const Footer = () => {
         
         {/* Cột trái - Thông tin brand & socials */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <h2 style={{ fontSize: '3rem', fontFamily: '"Share Tech Mono", monospace', margin: 0 }} className="text-gradient">
+          <h2 style={{ fontSize: '3.2rem', fontFamily: 'var(--font-tech)', margin: 0, letterSpacing: '2px' }} className="text-gradient">
             BCT0902
           </h2>
           

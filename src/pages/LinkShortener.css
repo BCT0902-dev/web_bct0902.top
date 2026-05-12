@@ -201,11 +201,11 @@
         display: flex !important;
     }
 
-    /* Refined Mobile Styling */
+    /* Ultra-Compact Mobile Styling */
     .shortener-page-wrapper {
         background: #050507 !important;
-        padding-top: 140px !important; /* Increased for tabs */
-        padding-bottom: 120px !important;
+        padding-top: 135px !important; 
+        padding-bottom: 90px !important;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
@@ -216,29 +216,29 @@
     .iris-mobile-tabs {
         display: flex !important;
         position: fixed;
-        top: 70px;
+        top: 65px;
         left: 0;
         right: 0;
-        height: 60px;
+        height: 55px;
         background: #0a0a0c;
         border-bottom: 1px solid rgba(255, 176, 0, 0.1);
         z-index: 2400;
-        padding: 0.5rem;
-        gap: 0.5rem;
+        padding: 0.4rem;
+        gap: 0.4rem;
     }
 
     .m-tab-btn {
         flex: 1;
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
+        border-radius: 10px;
         color: #666;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
+        gap: 0.4rem;
         transition: all 0.3s ease;
     }
 
@@ -254,7 +254,7 @@
     }
 
     .shortener-layout {
-        padding: 0 1rem !important;
+        padding: 0 0.8rem !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
@@ -263,42 +263,38 @@
 
     .shortener-main-col, .shortener-side-col {
         width: 100% !important;
-        max-width: 500px !important; /* Limit width for better balance */
+        max-width: 480px !important;
     }
 
     .shortener-card, .management-panel {
         width: 100% !important;
         background: #121217 !important;
         border: 1px solid rgba(255, 255, 255, 0.03) !important;
-        border-radius: 28px !important;
-        padding: 2rem 1.5rem !important;
-        margin-bottom: 2rem !important;
+        border-radius: 20px !important;
+        padding: 1.2rem !important;
+        margin-bottom: 1rem !important;
         height: auto !important;
     }
 
     .mobile-title {
-        font-size: 1.5rem !important;
+        font-size: 1.3rem !important;
         color: #ff9a3d !important;
         text-align: center;
         width: 100% !important;
-        margin-bottom: 0.8rem;
+        margin-bottom: 1rem !important;
+        letter-spacing: 1px;
     }
 
     .mobile-subtitle {
-        text-align: center;
-        opacity: 0.5;
-        letter-spacing: 1px;
-        margin-bottom: 2rem;
-        font-size: 0.7rem !important;
-        display: block !important;
+        display: none !important; /* Hide subtitle to save major space */
     }
 
     .input-group label.mobile-label {
         align-items: center;
-        gap: 0.8rem;
-        font-size: 0.8rem !important;
+        gap: 0.6rem;
+        font-size: 0.75rem !important;
         color: #fff !important;
-        margin-bottom: 1rem !important;
+        margin-bottom: 0.6rem !important;
         text-transform: uppercase;
         font-weight: 700;
     }
@@ -306,8 +302,8 @@
     .main-input, .slug-input-wrapper {
         background: #1a1a21 !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        height: 55px !important;
-        border-radius: 12px !important;
+        height: 50px !important;
+        border-radius: 10px !important;
     }
 
     .main-input, .slug-input {
@@ -385,6 +381,25 @@
         font-size: 0.55rem;
         font-weight: 800;
         letter-spacing: 0.5px;
+    }
+
+    /* Compact Management List */
+    .link-item {
+        padding: 0.8rem !important;
+        margin-bottom: 0.8rem !important;
+        gap: 0.3rem !important;
+    }
+
+    .link-slug {
+        font-size: 1rem !important;
+    }
+
+    .link-url-row {
+        font-size: 0.75rem !important;
+    }
+
+    .link-footer {
+        padding-top: 0.5rem !important;
     }
 
     .m-lang {
