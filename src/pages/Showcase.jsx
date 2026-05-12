@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ExternalLink, Code, Sparkles, Box, Layout as LayoutIcon, Cpu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 import MobileBottomNav from '../components/MobileBottomNav';
 
 const GithubIcon = ({ size = 16 }) => (
@@ -43,6 +44,7 @@ const Showcase = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingBottom: '100px' }}>
+      <Navbar />
       {/* Header Section */}
       <section style={{ 
         padding: '8rem 2rem 4rem', 
