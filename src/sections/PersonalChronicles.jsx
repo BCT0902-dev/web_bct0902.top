@@ -257,49 +257,51 @@ const PersonalChronicles = () => {
   }
 
   return (
-    <section 
-        id="chronicles" 
-        ref={containerRef}
-        style={{ 
-            position: 'relative', 
-            background: 'transparent',
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '10rem 2rem'
-        }}
-    >
-      <div 
-        style={{ position: 'relative' }}
+    <>
+      <section 
+          id="chronicles" 
+          ref={containerRef}
+          style={{ 
+              position: 'relative', 
+              background: 'transparent',
+              maxWidth: '1200px',
+              margin: '0 auto',
+              padding: '10rem 2rem'
+          }}
       >
-        {/* Curvy Line Background */}
-        <CurvyPath scrollYProgress={scrollYProgress} />
+        <div 
+          style={{ position: 'relative' }}
+        >
+          {/* Curvy Line Background */}
+          <CurvyPath scrollYProgress={scrollYProgress} />
 
-        <div style={{ position: 'relative', zIndex: 2 }}>
-            <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                className="chronicles-page-header"
-                style={{ textAlign: 'center', marginBottom: '8rem' }}
-            >
-                <h2 className="text-gradient" style={{ fontSize: '3.5rem', fontFamily: 'Chakra Petch' }}>{t('chronicles.title')}</h2>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>{t('chronicles.subtitle')}</p>
-            </motion.div>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+              <motion.div 
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  className="chronicles-page-header"
+                  style={{ textAlign: 'center', marginBottom: '8rem' }}
+              >
+                  <h2 className="text-gradient" style={{ fontSize: '3.5rem', fontFamily: 'Chakra Petch' }}>{t('chronicles.title')}</h2>
+                  <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>{t('chronicles.subtitle')}</p>
+              </motion.div>
 
-            <div className="chronicles-milestone-list" style={{ display: 'flex', flexDirection: 'column' }}>
-                {milestones.map((milestone, idx) => (
-                    <Milestone 
-                        key={idx} 
-                        milestone={milestone} 
-                        index={idx} 
-                        isLast={idx === milestones.length - 1} 
-                        image={images[idx]}
-                    />
-                ))}
-            </div>
+              <div className="chronicles-milestone-list" style={{ display: 'flex', flexDirection: 'column' }}>
+                  {milestones.map((milestone, idx) => (
+                      <Milestone 
+                          key={idx} 
+                          milestone={milestone} 
+                          index={idx} 
+                          isLast={idx === milestones.length - 1} 
+                          image={images[idx]}
+                      />
+                  ))}
+              </div>
+          </div>
         </div>
-      </div>
-    </section>
-    <MobileBottomNav />
+      </section>
+      <MobileBottomNav />
+    </>
   );
 };
 
