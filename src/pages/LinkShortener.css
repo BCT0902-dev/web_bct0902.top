@@ -1,3 +1,10 @@
+.shortener-page-wrapper, 
+.shortener-page-wrapper *,
+.chakra-font,
+.chakra-font * {
+    font-family: var(--font-tech) !important;
+}
+
 .shortener-page-wrapper {
     min-height: 100vh;
     padding: 8rem 2rem 4rem;

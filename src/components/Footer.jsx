@@ -6,7 +6,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { useConfig } from '../context/ConfigContext';
 
-const Footer = () => {
+const Footer = ({ technicalFont }) => {
   const { config } = useConfig();
   const configSocials = config?.socials || {};
   const { t } = useTranslation();
@@ -150,7 +150,7 @@ const Footer = () => {
   };
 
   return (
-    <footer id="contact" style={{ 
+    <footer id="contact" className={technicalFont ? 'chakra-font' : ''} style={{ 
       borderTop: '1px solid var(--bg-glass-border)',
       padding: '2rem 2rem 1.5rem',
       marginTop: '1rem',
