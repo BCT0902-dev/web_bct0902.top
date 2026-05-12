@@ -26,6 +26,8 @@ import ShortLinkRedirect from './pages/ShortLinkRedirect';
 import NotFound from './pages/NotFound';
 import QuizMaker from './pages/QuizMaker';
 import QuizPlayer from './pages/QuizPlayer';
+import Showcase from './pages/Showcase';
+
 
 import PageGuard from './components/PageGuard';
 import MobileBottomNav from './components/MobileBottomNav';
@@ -110,6 +112,12 @@ function AppRoutes() {
               <Chronicles />
             </PageGuard>
           } />
+          <Route path="/showcase" element={
+            <PageGuard pageId="utilities">
+              <Showcase />
+            </PageGuard>
+          } />
+
           <Route path="/admin" element={isAdmin ? <AdminDashboard /> : <Login />} />
           <Route path="/admin/cms/:id" element={isAdmin ? <BlogCMS /> : <Login />} />
           <Route path="/shortener" element={<LinkShortener />} />

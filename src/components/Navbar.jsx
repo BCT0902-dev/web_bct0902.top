@@ -120,11 +120,11 @@ const Navbar = () => {
         </div>
 
         <ul style={{ flex: '0 1 auto', display: 'flex', justifyContent: 'center', gap: '1.5rem', listStyle: 'none', alignItems: 'center' }}>
-            {['home', 'about', 'chronicles', 'skills', 'blog', 'shortener', 'quiz'].map((link) => (
+            {['home', 'about', 'chronicles', 'showcase', 'skills', 'blog', 'shortener', 'quiz'].map((link) => (
               <li key={link}>
-                {(link === 'blog' || link === 'chronicles' || link === 'shortener' || link === 'quiz') ? (
+                {(link === 'blog' || link === 'chronicles' || link === 'shortener' || link === 'quiz' || link === 'showcase') ? (
                   <Link 
-                    to={link === 'blog' ? "/blog" : link === 'shortener' ? "/shortener" : link === 'quiz' ? "/quiz-maker" : "/chronicles"}
+                    to={link === 'blog' ? "/blog" : link === 'shortener' ? "/shortener" : link === 'quiz' ? "/quiz-maker" : link === 'showcase' ? "/showcase" : "/chronicles"}
                     style={{ 
                       fontFamily: 'var(--font-tech)', 
                       fontSize: '0.95rem',
@@ -144,7 +144,7 @@ const Navbar = () => {
                       e.target.style.color = 'inherit';
                     }}
                   >
-                    {link === 'quiz' ? 'QUIZ MAKER' : t(`nav.${link}`)}
+                    {link === 'quiz' ? 'QUIZ MAKER' : link === 'showcase' ? t('nav.utilities') : t(`nav.${link}`)}
                   </Link>
                 ) : (
                   <a 
