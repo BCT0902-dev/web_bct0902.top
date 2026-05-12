@@ -80,8 +80,7 @@ export const ConfigProvider = ({ children }) => {
         blog: false,
         chronicles: false,
         about: false,
-        skills: false,
-        mobileBlockedPaths: []
+        skills: false
       },
       integrations: {
         emailjsServiceId: '',

@@ -9,7 +9,6 @@ import TrustedApps from './sections/TrustedApps';
 import Footer from './components/Footer';
 import Testimonials from './sections/Testimonials';
 import PersonalChronicles from './sections/PersonalChronicles';
-import MobileBlocker from './components/MobileBlocker';
 import Background from './components/Background';
 import Login from './pages/Login';
 import { ConfigProvider } from './context/ConfigContext';
@@ -79,7 +78,6 @@ function AppRoutes() {
 
   return (
     <>
-      <MobileBlocker />
       <AnimatePresence>
         {isInitialLoading && (
           <LoadingScreen onComplete={() => setIsInitialLoading(false)} />
