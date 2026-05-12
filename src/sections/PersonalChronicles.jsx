@@ -3,6 +3,7 @@ import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { GraduationCap, Briefcase, School, BookOpen, Star, Rocket } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
+import './PersonalChronicles.css';
 
 const Milestone = ({ milestone, index, isLast, image }) => {
   const { t } = useTranslation();
@@ -31,7 +32,8 @@ const Milestone = ({ milestone, index, isLast, image }) => {
 
   return (
     <div 
-      ref={ref} 
+      ref={ref}
+      className="chronicles-milestone-item"
       style={{ 
         position: 'relative', 
         display: 'flex', 
@@ -39,11 +41,12 @@ const Milestone = ({ milestone, index, isLast, image }) => {
         paddingBottom: isLast ? 0 : '12rem',
         paddingLeft: isEven ? '0' : '5%',
         paddingRight: isEven ? '5%' : '0',
-        perspective: '1200px' // Local perspective for card rotation
+        perspective: '1200px'
       }}
     >
       {/* Content Card with 3D Transforms */}
       <motion.div 
+        className="glass-panel chronicles-milestone-card"
         style={{ 
           width: '45%',
           opacity,
@@ -63,7 +66,6 @@ const Milestone = ({ milestone, index, isLast, image }) => {
           zIndex: 5,
           boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
         }}
-        className="glass-panel"
       >
         {/* Depth Layer (Subtle 3D glow background) */}
         <div style={{ 
@@ -149,6 +151,7 @@ const Milestone = ({ milestone, index, isLast, image }) => {
 
       {/* Connection Node - Upgraded to 3D Sphere */}
       <div 
+        className="chronicles-node"
         style={{ 
             position: 'absolute', 
             left: '50%', 
@@ -273,13 +276,14 @@ const PersonalChronicles = () => {
             <motion.div 
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
+                className="chronicles-page-header"
                 style={{ textAlign: 'center', marginBottom: '8rem' }}
             >
                 <h2 className="text-gradient" style={{ fontSize: '3.5rem', fontFamily: 'Chakra Petch' }}>{t('chronicles.title')}</h2>
                 <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>{t('chronicles.subtitle')}</p>
             </motion.div>
 
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="chronicles-milestone-list" style={{ display: 'flex', flexDirection: 'column' }}>
                 {milestones.map((milestone, idx) => (
                     <Milestone 
                         key={idx} 
